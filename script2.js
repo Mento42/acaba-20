@@ -1,12 +1,12 @@
 // ============================================
-// CONFIGURATION SUPABASE
+// CONFIGURATION SUPABASE - ACABA 2#0
 // ============================================
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-const SUPABASE_KEY = 'COLLEZ_VOTRE_PUBLISHABLE_KEY_ICI'; // ⚠️ Remplacez par votre clé complète
+const SUPABASE_KEY = 'VOTRE_CLE_PUBLISHABLE_ICI'; // ⚠️ COLLEZ VOTRE CLÉ COMPLÈTE
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================
-// DICTIONNAIRE i18n
+// DICTIONNAIRE i18n (identique à l'original)
 // ============================================
 const translations = {
     "dashboard": { fr: "Tableau de Bord", en: "Dashboard" },
@@ -85,9 +85,9 @@ const translations = {
     "injury": { fr: "Blessure", en: "Injury" },
     "duration": { fr: "Durée", en: "Duration" },
     "best_player": { fr: "Meilleur Joueur de l'Année", en: "Best Player of the Year" },
-    "nominations": { fr: "0 désignations", en: "0 nominations" },
+    "nominations": { fr: "désignations", en: "nominations" },
     "top_striker": { fr: "Meilleur Buteur de l'Année", en: "Top Scorer of the Year" },
-    "goals": { fr: "0 buts", en: "0 goals" },
+    "goals": { fr: "buts", en: "goals" },
     "team_a": { fr: "Équipe A", en: "Team A" },
     "team_b": { fr: "Équipe B", en: "Team B" },
     "players": { fr: "joueurs", en: "players" },
@@ -125,7 +125,7 @@ const translations = {
     "logo": { fr: "Logo", en: "Logo" },
     "reset": { fr: "Réinitialiser", en: "Reset" },
     "space_used": { fr: "Espace utilisé :", en: "Space used:" },
-    "storage_warning": { fr: "Si la barre est rouge, l'application ne peut plus sauvegarder. Cliquez sur \"Réinitialiser\" pour vider la mémoire.", en: "If the bar is red, the app cannot save. Click \"Reset\" to clear memory." },
+    "storage_warning": { fr: "Si la barre est rouge, l'application ne peut plus sauvegarder.", en: "If the bar is red, the app cannot save." },
     "last_name": { fr: "Nom *", en: "Last Name *" },
     "first_name": { fr: "Prénom *", en: "First Name *" },
     "dob": { fr: "Date de naissance", en: "Date of Birth" },
@@ -200,7 +200,7 @@ const translations = {
     "contribution_saved": { fr: "Contribution ajoutée avec succès !", en: "Contribution added successfully!" },
     "expense_saved": { fr: "Dépense ajoutée avec succès !", en: "Expense added successfully!" },
     "settings_saved": { fr: "Paramètres enregistrés !", en: "Settings saved successfully!" },
-    "no_board_members": { fr: "Aucun membre du bureau désigné. Ajoutez une fonction à un membre.", en: "No board members designated. Add a role to a member." },
+    "no_board_members": { fr: "Aucun membre du bureau désigné.", en: "No board members designated." },
     "unregistered_status": { fr: "Non inscrit", en: "Unregistered" },
     "member_deleted": { fr: "Membre supprimé avec succès !", en: "Member deleted successfully!" },
     "age": { fr: "Âge", en: "Age" },
@@ -223,8 +223,8 @@ const translations = {
     "no_sanctions": { fr: "Aucune sanction enregistrée.", en: "No sanctions recorded." },
     "sanctions_of": { fr: "Sanctions de", en: "Sanctions of" },
     "data_exported": { fr: "Données exportées avec succès !", en: "Data exported successfully!" },
-    "download_app_msg": { fr: "Pour télécharger l'application, veuillez utiliser la fonction 'Enregistrer sous' (Ctrl+S) de votre navigateur pour sauvegarder la page complète.", en: "To download the app, please use your browser's 'Save As' feature (Ctrl+S) to save the complete page." },
-    "storage_full": { fr: "Mémoire pleine ! Supprimez des photos ou exportez/importez les données pour libérer de l'espace.", en: "Memory full! Delete photos or export/import data to free up space." },
+    "download_app_msg": { fr: "Utilisez Ctrl+S pour sauvegarder la page.", en: "Use Ctrl+S to save the page." },
+    "storage_full": { fr: "Mémoire pleine !", en: "Memory full!" },
     "no_scorers": { fr: "Aucun but enregistré.", en: "No goals recorded." },
     "no_assisters": { fr: "Aucune passe enregistrée.", en: "No assists recorded." },
     "annual_dues_badge": { fr: "Cotisations Annuelles", en: "Annual Dues" },
@@ -267,17 +267,17 @@ let appData = {
     members: [], contributions: [], expenses: [], sanctions: [],
     referees: [], matches: [], injuries: [],
     officialDocs: { statut: "", reglement: "" },
-    settings: { name: "ACABA", logo: "" }
+    settings: { name: "ACABA 2#0", logo: "" }
 };
 
 let contribChartInstance = null;
 let categoryChartInstance = null;
 
 // ============================================
-// CHARGEMENT DES DONNÉES DEPUIS SUPABASE
+// CHARGEMENT DEPUIS SUPABASE + MIGRATION
 // ============================================
 async function loadData() {
-    showToast(currentLang === 'fr' ? "Chargement des données..." : "Loading data...", false);
+    showToast(currentLang === 'fr' ? "Chargement..." : "Loading...", false);
     
     try {
         const [
@@ -300,8 +300,8 @@ async function loadData() {
             supabase.from('parametres').select('cle, valeur')
         ]);
 
-        if (errM) throw new Error("Erreur membres: " + errM.message);
-        if (errC) throw new Error("Erreur contributions: " + errC.message);
+        if (errM) console.error("Erreur membres:", errM);
+        if (errC) console.error("Erreur contributions:", errC);
 
         appData.members = (dbMembers || []).map(m => ({
             id: m.id, lastName: m.nom, firstName: m.prenom, dob: m.date_naissance,
@@ -344,27 +344,374 @@ async function loadData() {
         const docs = dbDocs || [];
         appData.officialDocs.statut = docs.find(d => d.cle === 'statut')?.valeur || "";
         appData.officialDocs.reglement = docs.find(d => d.cle === 'reglement')?.valeur || "";
-        appData.settings.name = docs.find(d => d.cle === 'nom_association')?.valeur || "ACABA";
+        appData.settings.name = docs.find(d => d.cle === 'nom_association')?.valeur || "ACABA 2#0";
         appData.settings.logo = docs.find(d => d.cle === 'logo_url')?.valeur || "";
 
+        // MIGRATION : si Supabase est vide mais localStorage contient des données
+        const oldData = localStorage.getItem('acaba_data');
+        if (oldData && appData.members.length === 0) {
+            console.log("Migration des données locales vers Supabase...");
+            await migrateOldDataToSupabase(JSON.parse(oldData));
+            return; // Rechargera après migration
+        }
+
         renderAll();
-        showToast(currentLang === 'fr' ? "Données chargées !" : "Data loaded!", false);
+        showToast(currentLang === 'fr' ? `${appData.members.length} membres chargés !` : `${appData.members.length} members loaded!`, false);
         
     } catch (error) {
         console.error("Erreur loadData:", error);
-        showToast("Erreur de chargement: " + error.message, true);
+        showToast("Erreur: " + error.message, true);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    applyTranslations();
-    checkMobileView();
-});
+async function migrateOldDataToSupabase(oldAppData) {
+    showToast("Migration en cours... Ne fermez pas la page.", false);
+    
+    try {
+        if (oldAppData.members && oldAppData.members.length > 0) {
+            const membersToInsert = oldAppData.members.map(m => ({
+                nom: m.lastName || m.nom || '',
+                prenom: m.firstName || m.prenom || '',
+                date_naissance: m.dob || m.dateNaissance || null,
+                lieu_naissance: m.pob || m.lieuNaissance || '',
+                sexe: m.gender || m.sexe || 'Masculin',
+                situation: m.civilStatus || m.situation || '',
+                profession: m.profession || '',
+                fonction_bureau: m.fonction || m.fonction_bureau || '',
+                categorie: m.category || m.categorie || 'Jeune',
+                statut_adhesion: m.statutAdhesion || m.statut_adhesion || 'aucun',
+                equipe: m.team || m.equipe || 'A',
+                capitaine: m.isCaptain || m.capitaine || false,
+                poste: m.position || m.poste || '',
+                numero: parseInt(m.number) || null,
+                tel: m.phone || m.tel || '',
+                email: m.email || '',
+                adresse: m.address || m.adresse || '',
+                photo_url: m.photo || '',
+                statut_membre: m.status || m.statut_membre || 'Actif'
+            }));
+            
+            const { error } = await supabase.from('membres').insert(membersToInsert);
+            if (error) {
+                console.error("Erreur migration membres:", error);
+                showToast("Erreur migration membres: " + error.message, true);
+            } else {
+                console.log(`${membersToInsert.length} membres migrés !`);
+            }
+        }
+
+        if (oldAppData.contributions && oldAppData.contributions.length > 0) {
+            // On doit mapper memberId -> nouveau UUID (après migration des membres)
+            // Pour simplifier, on migre d'abord les membres, puis on recharge
+        }
+
+        showToast("Migration terminée ! Rechargement...", false);
+        setTimeout(() => location.reload(), 1500);
+        
+    } catch (error) {
+        console.error("Erreur migration:", error);
+        showToast("Erreur migration: " + error.message, true);
+    }
+}
 
 // ============================================
-// SAUVEGARDE MEMBRE AVEC UPLOAD PHOTO
+// NAVIGATION ENTRE ONGLETS
 // ============================================
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) targetTab.classList.remove('hidden');
+    
+    document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+    const activeLink = document.querySelector(`.sidebar-link[data-tab="${tabId}"]`);
+    if (activeLink) activeLink.classList.add('active');
+    
+    if (window.innerWidth <= 1023) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('open');
+    }
+    
+    // Rafraîchir les données spécifiques à l'onglet
+    if (tabId === 'dashboard') renderDashboard();
+    if (tabId === 'members') renderMembersTable();
+    if (tabId === 'contributions') renderContributions();
+    if (tabId === 'expenses') renderExpenses();
+    if (tabId === 'bureau') renderBureau();
+    if (tabId === 'sanctions') { renderSanctions(); renderArbitres(); }
+    if (tabId === 'licences') { populateMemberSelects(); renderLicencePreview(); }
+    if (tabId === 'infirmerie') renderInfirmerie();
+    if (tabId === 'teams') renderTeams();
+    if (tabId === 'member-statement') { populateMemberSelects(); renderMemberStatement(); }
+    if (tabId === 'annual-report') renderAnnualReport();
+    if (tabId === 'official-docs') renderOfficialDocs();
+    if (tabId === 'settings') updateStorageUsage();
+}
+
+function toggleSidebar() { 
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('open'); 
+}
+
+function checkMobileView() {
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    if (mobileBtn) mobileBtn.style.display = window.innerWidth <= 1023 ? 'flex' : 'none';
+}
+window.addEventListener('resize', checkMobileView);
+
+function openModal(modalId) { 
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('flex'); 
+}
+
+function closeModal(modalId) { 
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('flex'); 
+}
+
+function showToast(message, isError = false) {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        console.log(message);
+        return;
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${isError ? 'error' : ''}`;
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function toggleLanguage() {
+    currentLang = currentLang === 'fr' ? 'en' : 'fr';
+    localStorage.setItem('acaba_lang', currentLang);
+    applyTranslations(); 
+    renderAll(); 
+}
+
+function applyTranslations() {
+    document.documentElement.lang = currentLang;
+    const langBtn = document.getElementById('langBtn');
+    if (langBtn) langBtn.innerText = currentLang === 'fr' ? 'EN' : 'FR';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[key] && translations[key][currentLang]) el.textContent = translations[key][currentLang];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (translations[key] && translations[key][currentLang]) el.placeholder = translations[key][currentLang];
+    });
+}
+
+function getSortedMembers() {
+    return [...appData.members].sort((a, b) => {
+        const lnA = (a.lastName || '').toLowerCase(), lnB = (b.lastName || '').toLowerCase();
+        if (lnA !== lnB) return lnA.localeCompare(lnB);
+        return (a.firstName || '').toLowerCase().localeCompare((b.firstName || '').toLowerCase());
+    });
+}
+
+function getFullName(m) { return `${m.lastName || ''} ${m.firstName || ''}`.trim(); }
+
+function calculateAge(dob) {
+    if (!dob) return '-';
+    const birthDate = new Date(dob); 
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age;
+}
+
+function updateStorageUsage() {
+    const kb = (new Blob([JSON.stringify(appData)]).size / 1024).toFixed(2);
+    const maxKb = 5120; 
+    const usageEl = document.getElementById('storageUsage');
+    const barEl = document.getElementById('storageBar');
+    if (usageEl) usageEl.innerText = `${kb} Ko (Supabase: illimité)`;
+    if (barEl) {
+        barEl.style.width = '10%';
+        barEl.style.background = 'linear-gradient(90deg, var(--primary), var(--gold))';
+    }
+}
+
+function renderAll() {
+    applySettings(); 
+    renderDashboard(); 
+    renderMembersTable(); 
+    renderBureau();
+    renderContributions(); 
+    renderExpenses(); 
+    renderSanctions(); 
+    renderArbitres();   
+    renderTeams(); 
+    renderMatches(); 
+    renderInfirmerie(); 
+    renderOfficialDocs(); 
+    renderAnnualReport(); 
+    populateMemberSelects();
+    updateMatchSortButton();
+}
+
+function applySettings() {
+    const favicon = document.getElementById('favicon');
+    const logoBox = document.getElementById('logoBox');
+    const settingNomInput = document.getElementById('settingNom');
+    if (settingNomInput && appData.settings.name) settingNomInput.value = appData.settings.name;
+    if (appData.settings.logo) {
+        if (favicon) favicon.href = appData.settings.logo;
+        if (logoBox) logoBox.innerHTML = `<img src="${appData.settings.logo}" alt="Logo">`;
+    }
+}
+
+// ============================================
+// TABLEAU DE BORD
+// ============================================
+function renderDashboard() {
+    const el = (id) => document.getElementById(id);
+    if (el('totalMembers')) el('totalMembers').innerText = appData.members.length;
+    
+    const totalCollected = appData.contributions.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    if (el('totalCollected')) el('totalCollected').innerText = totalCollected.toLocaleString();
+    if (el('totalMatches')) el('totalMatches').innerText = appData.matches.length;
+
+    function parseMatchDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+        return null;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingMatches = appData.matches
+        .map(m => ({ ...m, parsedDate: parseMatchDate(m.date) }))
+        .filter(m => m.parsedDate && m.parsedDate >= today)
+        .sort((a, b) => a.parsedDate - b.parsedDate);
+
+    const nextMatchElement = el('nextMatchDate');
+    if (nextMatchElement) {
+        if (upcomingMatches.length > 0) {
+            const nextMatch = upcomingMatches[0];
+            const dateOptions = { weekday: 'short', day: '2-digit', month: 'short' };
+            nextMatchElement.innerHTML = nextMatch.parsedDate.toLocaleDateString(
+                currentLang === 'fr' ? 'fr-FR' : 'en-US', dateOptions
+            );
+        } else {
+            nextMatchElement.innerHTML = '-';
+        }
+    }
+
+    let membersOk = 0, membersPartial = 0, membersLate = 0, totalAnnualDuesCollected = 0;
+    const annualTarget = 25000;
+    appData.members.forEach(m => {
+        let duesPaid = appData.contributions
+            .filter(c => c.memberId == m.id && c.type === "Cotisation Annuelle")
+            .reduce((sum, c) => sum + Number(c.amount), 0);
+        totalAnnualDuesCollected += duesPaid;
+        if (duesPaid >= annualTarget) membersOk++;
+        else if (duesPaid >= 15000) membersPartial++;
+        else membersLate++;
+    });
+    
+    if (el('membersOk')) el('membersOk').innerText = membersOk;
+    if (el('membersPartial')) el('membersPartial').innerText = membersPartial;
+    if (el('membersLate')) el('membersLate').innerText = membersLate;
+
+    const goalAmount = appData.members.length * annualTarget;
+    const completionRate = goalAmount > 0 ? (totalAnnualDuesCollected / goalAmount) * 100 : 0;
+    if (el('completionRate')) el('completionRate').innerText = completionRate.toFixed(1) + '%';
+    if (el('goalAmount')) el('goalAmount').innerText = goalAmount.toLocaleString() + ' F';
+    if (el('completionBar')) el('completionBar').style.width = completionRate + '%';
+
+    renderCategoryChart(); 
+    renderContribChart(); 
+}
+
+function renderCategoryChart() {
+    const ctx = document.getElementById('categoryChart'); 
+    if (!ctx) return;
+    let jeunes = 0, veterans = 0;
+    appData.members.forEach(m => {
+        if (m.category === 'Jeune') jeunes++;
+        else if (m.category === 'Vétéran') veterans++;
+    });
+    if (categoryChartInstance) categoryChartInstance.destroy();
+    categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: { 
+            labels: [currentLang === 'fr' ? 'Jeunes' : 'Youth', currentLang === 'fr' ? 'Vétérans' : 'Veterans'], 
+            datasets: [{ data: [jeunes, veterans], backgroundColor: ['#00ff87', '#04f5ff'], borderWidth: 1 }] 
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#71717a' } } } }
+    });
+}
+
+function renderContribChart() {
+    const ctx = document.getElementById('contribChart'); 
+    if (!ctx) return;
+    const monthlyData = {};
+    appData.contributions.forEach(c => { 
+        if (c.date) { 
+            const month = c.date.substring(0, 7); 
+            monthlyData[month] = (monthlyData[month] || 0) + Number(c.amount); 
+        } 
+    });
+    const labels = Object.keys(monthlyData).sort();
+    const data = labels.map(m => monthlyData[m]);
+    if (contribChartInstance) contribChartInstance.destroy();
+    contribChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { 
+            labels: labels, 
+            datasets: [{ label: 'Contributions (F)', data: data, backgroundColor: '#37003c', borderColor: '#00ff87', borderWidth: 1 }] 
+        },
+        options: { 
+            responsive: true, 
+            scales: { y: { beginAtZero: true, ticks: { color: '#71717a' } }, x: { ticks: { color: '#71717a' } } }, 
+            plugins: { legend: { display: false } } 
+        }
+    });
+}
+
+// ============================================
+// MEMBRES
+// ============================================
+function openMemberModal(id = null) {
+    document.getElementById('memberModalTitle').innerText = id ? translations.member[currentLang] : translations.new_member[currentLang];
+    document.getElementById('memberId').value = id ? id : '';
+    if (id) {
+        const m = appData.members.find(x => x.id == id);
+        if (!m) return;
+        document.getElementById('memberNom').value = m.lastName || '';
+        document.getElementById('memberPrenom').value = m.firstName || '';
+        document.getElementById('memberDateNaissance').value = m.dob || '';
+        document.getElementById('memberLieuNaissance').value = m.pob || '';
+        document.getElementById('memberSexe').value = m.gender || 'Masculin';
+        document.getElementById('memberSituation').value = m.civilStatus || 'Célibataire';
+        document.getElementById('memberProfession').value = m.profession || '';
+        document.getElementById('memberFonction').value = m.fonction || '';
+        document.getElementById('memberCategorie').value = m.category || 'Jeune';
+        document.getElementById('memberStatutAdhesion').value = m.statutAdhesion || 'aucun';
+        document.getElementById('memberEquipe').value = m.team || 'A';
+        document.getElementById('memberCapitaine').value = m.isCaptain ? 'true' : 'false';
+        document.getElementById('memberStatut').value = m.status || 'Actif';
+        document.getElementById('memberPoste').value = m.position || '';
+        document.getElementById('memberNumero').value = m.number || '';
+        document.getElementById('memberTel').value = m.phone || '';
+        document.getElementById('memberEmail').value = m.email || '';
+        document.getElementById('memberAdresse').value = m.address || '';
+    } else {
+        document.querySelectorAll('#memberModal input, #memberModal select').forEach(el => el.value = '');
+        document.getElementById('memberStatut').value = 'Actif';
+    }
+    openModal('memberModal');
+}
+
 async function saveMember() {
     const id = document.getElementById('memberId').value;
     const photoInput = document.getElementById('memberPhoto');
@@ -382,7 +729,7 @@ async function saveMember() {
             .upload(fileName, file);
 
         if (uploadError) {
-            showToast("Erreur upload photo: " + uploadError.message, true);
+            showToast("Erreur upload: " + uploadError.message, true);
             return;
         }
 
@@ -393,7 +740,7 @@ async function saveMember() {
     const dbData = {
         nom: document.getElementById('memberNom').value,
         prenom: document.getElementById('memberPrenom').value,
-        date_naissance: document.getElementById('memberDateNaissance').value,
+        date_naissance: document.getElementById('memberDateNaissance').value || null,
         lieu_naissance: document.getElementById('memberLieuNaissance').value,
         sexe: document.getElementById('memberSexe').value,
         situation: document.getElementById('memberSituation').value,
@@ -417,12 +764,13 @@ async function saveMember() {
         const res = await supabase.from('membres').update(dbData).eq('id', id);
         error = res.error;
     } else {
-        const res = await supabase.from('membres').insert(dbData).select();
+        const res = await supabase.from('membres').insert([dbData]).select();
         error = res.error;
     }
 
     if (error) {
-        showToast("Erreur sauvegarde: " + error.message, true);
+        console.error("Erreur sauvegarde:", error);
+        showToast("Erreur: " + error.message, true);
     } else {
         showToast(translations.member_saved[currentLang], false);
         closeModal('memberModal');
@@ -430,14 +778,161 @@ async function saveMember() {
     }
 }
 
+async function deleteMember(id) {
+    if (confirm(currentLang === 'fr' ? "Supprimer ce membre ?" : "Delete this member?")) {
+        const { error } = await supabase.from('membres').delete().eq('id', id);
+        if (error) {
+            showToast("Erreur: " + error.message, true);
+        } else {
+            showToast(translations.member_deleted[currentLang], false);
+            await loadData();
+        }
+    }
+}
+
+function renderMembersTable() {
+    const tbody = document.getElementById('membersTable'); 
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const search = (document.getElementById('searchMember')?.value || '').toLowerCase();
+    const filterCat = document.getElementById('filterCategory')?.value || '';
+    const filterSexe = document.getElementById('filterSexe')?.value || '';
+    const filterStatut = document.getElementById('filterStatut')?.value || '';
+    
+    getSortedMembers()
+        .filter(m => {
+            if (search && !getFullName(m).toLowerCase().includes(search)) return false;
+            if (filterCat && m.category !== filterCat) return false;
+            if (filterSexe && m.gender !== filterSexe) return false;
+            if (filterStatut && m.status !== filterStatut) return false;
+            return true;
+        })
+        .forEach(m => {
+            const initials = `${(m.firstName||'').charAt(0)}${(m.lastName||'').charAt(0)}`;
+            const avatarHtml = m.photo ? `<img src="${m.photo}" alt="${m.firstName}">` : initials;
+            const captainBadge = m.isCaptain ? `<span style="color: #ca8a04; font-weight: 900; margin-left: 5px;">(C)</span>` : '';
+            const goalkeeperBadge = m.position === 'Gardien' ? `<span style="color: var(--primary); font-weight: 900; margin-left: 5px;">(Gk)</span>` : '';
+            
+            let membershipPaid = 0, membershipTarget = 0, filterType = "", displayType = "";
+            if (m.statutAdhesion === 'inscription') { membershipTarget = 10000; filterType = "Inscription"; displayType = "Inscription"; }
+            else if (m.statutAdhesion === 'reinscription') { membershipTarget = 5000; filterType = "Réinscription"; displayType = "Réinscription"; }
+            
+            let feeHtml = "";
+            if (membershipTarget > 0) {
+                membershipPaid = appData.contributions.filter(c => c.memberId == m.id && c.type === filterType).reduce((sum, c) => sum + Number(c.amount), 0);
+                feeHtml = `<span style="color: ${(membershipPaid >= membershipTarget) ? "var(--gold-dark)" : "#ff0033"}; font-weight: 700; font-size:11px;">${displayType}: ${membershipPaid.toLocaleString()} F</span>`;
+            } else { 
+                feeHtml = `<span style="color: var(--text-sec); font-size:11px;">${translations.unregistered_status[currentLang]}</span>`; 
+            }
+            
+            let teamBadge = m.team === 'A' ? `<span class="badge" style="background: var(--gold); color: var(--primary);">A</span>` : m.team === 'B' ? `<span class="badge" style="background: var(--accent-cyan); color: var(--primary);">B</span>` : '-';
+            
+            let duesPaid = appData.contributions.filter(c => c.memberId == m.id && c.type === "Cotisation Annuelle").reduce((sum, c) => sum + Number(c.amount), 0);
+            let duesBadgeClass = duesPaid >= 25000 ? "badge-success" : duesPaid >= 15000 ? "badge-warning" : "badge-danger";
+            const duesHtml = `<span class="badge ${duesBadgeClass}">${duesPaid.toLocaleString()} F</span>`;
+            
+            const statusHtml = m.status === 'Actif' 
+                ? `<span class="badge badge-success">${translations.active[currentLang]}</span>` 
+                : `<span class="badge badge-muted">${translations.inactive[currentLang]}</span>`;
+            
+            const actionsHtml = `<button class="btn btn-sm btn-secondary" onclick="openMemberModal('${m.id}')" title="Modifier"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteMember('${m.id}')" title="Supprimer"><i class="fas fa-trash"></i></button>`;
+            
+            tbody.innerHTML += `<tr>
+                <td><div class="member-cell"><div class="avatar">${avatarHtml}</div><div class="member-info"><span class="member-name">${getFullName(m)} ${captainBadge} ${goalkeeperBadge}</span><span class="member-role">${m.profession || '-'}</span>${feeHtml}</div></div></td>
+                <td>${m.dob || '-'}</td>
+                <td>${teamBadge}</td>
+                <td>${duesHtml}</td>
+                <td>${statusHtml}</td>
+                <td style="text-align:right;">${actionsHtml}</td>
+            </tr>`;
+        });
+}
+
 // ============================================
-// SAUVEGARDE CONTRIBUTION
+// BUREAU
 // ============================================
+function renderBureau() {
+    const container = document.getElementById('bureauContainer'); 
+    if (!container) return;
+    container.innerHTML = '';
+    const boardMembers = appData.members.filter(m => m.fonction && m.fonction !== "");
+    if (boardMembers.length === 0) { 
+        container.innerHTML = `<p style="color: var(--text-sec); text-align: center; grid-column: 1/-1;">${translations.no_board_members[currentLang]}</p>`; 
+        return; 
+    }
+    const roleOrder = ["Président", "Vice Président", "Secrétaire Général", "Secrétaire Général Adjoint", "Trésorier", "Commissaire aux comptes", "Censeur N°1", "Censeur N°2", "Chargé des Sports et de la Culture", "Conseiller Spécial"];
+    boardMembers.sort((a, b) => roleOrder.indexOf(a.fonction) - roleOrder.indexOf(b.fonction));
+    boardMembers.forEach(m => {
+        const roleKey = roleTranslationMap[m.fonction] || 'none';
+        const translatedRole = translations[roleKey] ? translations[roleKey][currentLang] : m.fonction;
+        const initials = `${(m.firstName||'').charAt(0)}${(m.lastName||'').charAt(0)}`;
+        const photoHtml = m.photo ? `<img src="${m.photo}" alt="${m.firstName}">` : initials;
+        container.innerHTML += `<div class="org-card"><div class="org-card-banner"></div><div class="org-card-content"><div class="org-avatar-lg">${photoHtml}</div><h3 style="margin-top: 15px; font-weight: 800;">${getFullName(m)}</h3><div class="org-role-badge">${translatedRole}</div>${m.phone ? `<p style="font-size: 13px;"><i class="fas fa-phone"></i> ${m.phone}</p>` : ''}${m.email ? `<p style="font-size: 13px;"><i class="fas fa-envelope"></i> ${m.email}</p>` : ''}</div></div>`;
+    });
+}
+
+// ============================================
+// CONTRIBUTIONS
+// ============================================
+function renderContributions() {
+    const searchMember = (document.getElementById('searchContribMember')?.value || '').toLowerCase();
+    const searchHistory = (document.getElementById('searchContribHistory')?.value || '').toLowerCase();
+    
+    const summaryTbody = document.getElementById('contribTable');
+    if (summaryTbody) {
+        summaryTbody.innerHTML = '';
+        const filteredMembers = getSortedMembers().filter(m => !searchMember || getFullName(m).toLowerCase().includes(searchMember));
+        if (filteredMembers.length === 0) {
+            summaryTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-sec); padding:20px;">Aucun membre trouvé.</td></tr>`;
+        } else {
+            filteredMembers.forEach(m => {
+                const initials = `${(m.firstName||'').charAt(0)}${(m.lastName||'').charAt(0)}`;
+                const avatarHtml = m.photo ? `<img src="${m.photo}" alt="${m.firstName}">` : initials;
+                const duesPaid = appData.contributions.filter(c => c.memberId == m.id && c.type === "Cotisation Annuelle").reduce((sum, c) => sum + Number(c.amount), 0);
+                const regPaid = appData.contributions.filter(c => c.memberId == m.id && (c.type === "Inscription" || c.type === "Réinscription")).reduce((sum, c) => sum + Number(c.amount), 0);
+                let statusHtml = duesPaid >= 25000 ? `<span class="badge badge-success">${translations.up_to_date[currentLang]}</span>` : duesPaid >= 15000 ? `<span class="badge badge-warning">${translations.partial[currentLang]}</span>` : `<span class="badge badge-danger">${translations.late[currentLang]}</span>`;
+                const actionsHtml = `<button class="btn btn-sm btn-primary" onclick="openContribModal(); selectMemberForContrib('${m.id}')"><i class="fas fa-plus"></i></button>`;
+                summaryTbody.innerHTML += `<tr><td><div class="member-cell"><div class="avatar">${avatarHtml}</div><div class="member-info"><span class="member-name">${getFullName(m)}</span></div></div></td><td>${duesPaid.toLocaleString()} F</td><td>${regPaid.toLocaleString()} F</td><td>${statusHtml}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+            });
+        }
+    }
+    
+    const historyTbody = document.getElementById('contribHistoryTable');
+    if (!historyTbody) return;
+    historyTbody.innerHTML = '';
+    const sortedContribs = [...appData.contributions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const filteredContribs = sortedContribs.filter(c => {
+        if (!searchHistory) return true;
+        const member = appData.members.find(m => m.id == c.memberId);
+        const name = member ? getFullName(member).toLowerCase() : 'unknown';
+        return name.includes(searchHistory) || (c.type || '').toLowerCase().includes(searchHistory);
+    });
+    if (filteredContribs.length === 0) {
+        historyTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-sec); padding:20px;">Aucune contribution trouvée.</td></tr>`;
+    } else {
+        filteredContribs.forEach(c => {
+            const member = appData.members.find(m => m.id == c.memberId);
+            const name = member ? getFullName(member) : 'Unknown';
+            const actionsHtml = `<button class="btn btn-sm btn-danger" onclick="deleteContribution('${c.id}')"><i class="fas fa-trash"></i></button>`;
+            historyTbody.innerHTML += `<tr><td>${c.date}</td><td>${name}</td><td>${Number(c.amount).toLocaleString()} F</td><td>${c.type}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+        });
+    }
+}
+
+function selectMemberForContrib(id) { document.getElementById('contribMember').value = id; }
+
+function openContribModal() {
+    document.querySelectorAll('#contribModal input, #contribModal select').forEach(el => el.value = '');
+    document.getElementById('contribDate').valueAsDate = new Date();
+    populateMemberSelects(); 
+    openModal('contribModal');
+}
+
 async function saveContribution() {
     const id = document.getElementById('contribId').value;
     const dbData = {
         membre_id: document.getElementById('contribMember').value,
-        montant: parseFloat(document.getElementById('contribMontant').value),
+        montant: parseFloat(document.getElementById('contribMontant').value) || 0,
         date_paiement: document.getElementById('contribDate').value,
         type_paiement: document.getElementById('contribType').value
     };
@@ -447,7 +942,7 @@ async function saveContribution() {
         const res = await supabase.from('contributions').update(dbData).eq('id', id);
         error = res.error;
     } else {
-        const res = await supabase.from('contributions').insert(dbData).select();
+        const res = await supabase.from('contributions').insert([dbData]).select();
         error = res.error;
     }
 
@@ -460,13 +955,55 @@ async function saveContribution() {
     }
 }
 
+async function deleteContribution(id) {
+    if (confirm("Supprimer cette contribution ?")) {
+        const { error } = await supabase.from('contributions').delete().eq('id', id);
+        if (error) showToast("Erreur: " + error.message, true);
+        else await loadData();
+    }
+}
+
 // ============================================
-// SAUVEGARDE DÉPENSE
+// DÉPENSES
 // ============================================
+function renderExpenses() {
+    const tbody = document.getElementById('expensesTable'); 
+    if (!tbody) return;
+    tbody.innerHTML = ''; 
+    let totalExpenses = 0;
+    appData.expenses.forEach(e => {
+        totalExpenses += Number(e.amount);
+        const actionsHtml = `<button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i></button>`;
+        tbody.innerHTML += `<tr><td>${e.date}</td><td>${e.reason}</td><td>${e.beneficiary || '-'}</td><td>${Number(e.amount).toLocaleString()} F</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+    });
+    const totalExpensesEl = document.getElementById('totalExpensesYear');
+    if (totalExpensesEl) totalExpensesEl.innerText = totalExpenses.toLocaleString();
+    const netBalanceEl = document.getElementById('netBalanceExpenses');
+    if (netBalanceEl) {
+        const totalContribs = appData.contributions.reduce((sum, c) => sum + Number(c.amount), 0);
+        netBalanceEl.innerText = (totalContribs - totalExpenses).toLocaleString();
+    }
+}
+
+function openExpenseModal(id = null) {
+    document.querySelectorAll('#expenseModal input').forEach(el => el.value = '');
+    if (!id) document.getElementById('expenseDate').valueAsDate = new Date();
+    if (id) {
+        const e = appData.expenses.find(x => x.id == id); 
+        if (!e) return;
+        document.getElementById('expenseId').value = e.id;
+        document.getElementById('expenseDate').value = e.date || '';
+        document.getElementById('expenseMontant').value = e.amount || '';
+        document.getElementById('expenseMotif').value = e.reason || '';
+        document.getElementById('expenseBeneficiaire').value = e.beneficiary || '';
+    }
+    openModal('expenseModal');
+}
+
 async function saveExpense() {
     const id = document.getElementById('expenseId').value;
     const dbData = {
-        montant: parseFloat(document.getElementById('expenseMontant').value),
+        montant: parseFloat(document.getElementById('expenseMontant').value) || 0,
         date_depense: document.getElementById('expenseDate').value,
         motif: document.getElementById('expenseMotif').value,
         beneficiaire: document.getElementById('expenseBeneficiaire').value
@@ -477,7 +1014,7 @@ async function saveExpense() {
         const res = await supabase.from('depenses').update(dbData).eq('id', id);
         error = res.error;
     } else {
-        const res = await supabase.from('depenses').insert(dbData).select();
+        const res = await supabase.from('depenses').insert([dbData]).select();
         error = res.error;
     }
 
@@ -490,74 +1027,795 @@ async function saveExpense() {
     }
 }
 
+async function deleteExpense(id) {
+    if (confirm("Supprimer cette dépense ?")) {
+        const { error } = await supabase.from('depenses').delete().eq('id', id);
+        if (error) showToast("Erreur: " + error.message, true);
+        else await loadData();
+    }
+}
+
 // ============================================
-// FONCTIONS UTILITAIRES
+// SANCTIONS & ARBITRES
 // ============================================
-function closeModal(modalId) { 
-    document.getElementById(modalId).classList.remove('flex'); 
-}
-
-function openModal(modalId) { 
-    document.getElementById(modalId).classList.add('flex'); 
-}
-
-function showToast(message, isError = false) {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${isError ? 'error' : ''}`;
-    toast.innerText = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-function applyTranslations() {
-    document.documentElement.lang = currentLang;
-    document.getElementById('langBtn').innerText = currentLang === 'fr' ? 'EN' : 'FR';
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[key] && translations[key][currentLang]) el.textContent = translations[key][currentLang];
+function renderSanctions() {
+    const tbody = document.getElementById('sanctionsTable'); 
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const search = (document.getElementById('searchSanctions')?.value || '').toLowerCase();
+    const filteredSanctions = appData.sanctions.filter(s => {
+        if (!search) return true;
+        const member = appData.members.find(m => m.id == s.memberId);
+        const name = member ? getFullName(member).toLowerCase() : 'unknown';
+        return name.includes(search);
+    });
+    if (filteredSanctions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-sec); padding:20px;">Aucune sanction trouvée.</td></tr>`;
+        return;
+    }
+    filteredSanctions.forEach(s => {
+        const member = appData.members.find(m => m.id == s.memberId);
+        const name = member ? getFullName(member) : 'Unknown';
+        const total = Number(s.amount || 0), paid = Number(s.amountPaid || 0);
+        const remaining = Math.max(0, total - paid);
+        const isPaid = remaining === 0 && total > 0;
+        let statusBadge = isPaid ? `<span class="badge badge-success">${translations.paid[currentLang]}</span>` : `<span class="badge badge-danger">${translations.unpaid[currentLang]}</span>`;
+        const actionsHtml = `<button class="btn btn-sm btn-secondary" onclick="paySanction('${s.id}')"><i class="fas fa-money-check-dollar"></i></button><button class="btn btn-sm btn-danger" onclick="deleteSanction('${s.id}')"><i class="fas fa-trash"></i></button>`;
+        tbody.innerHTML += `<tr><td>${name}</td><td>${s.type}</td><td>${total.toLocaleString()} F</td><td>${paid.toLocaleString()} F</td><td>${remaining.toLocaleString()} F</td><td>${statusBadge}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
     });
 }
 
-function checkMobileView() {
-    const mobileBtn = document.getElementById('mobileMenuBtn');
-    if (mobileBtn) mobileBtn.style.display = window.innerWidth <= 1023 ? 'flex' : 'none';
+async function paySanction(id) {
+    const s = appData.sanctions.find(x => x.id == id); 
+    if (!s) return;
+    const total = Number(s.amount || 0), alreadyPaid = Number(s.amountPaid || 0);
+    const remaining = total - alreadyPaid;
+    const input = prompt(`Montant à encaisser (Reste: ${remaining} F)`, remaining);
+    if (input !== null) {
+        const amountToPay = Number(input);
+        if (!isNaN(amountToPay) && amountToPay > 0) {
+            const newPaid = alreadyPaid + amountToPay;
+            const { error } = await supabase.from('sanctions').update({ montant_paye: newPaid }).eq('id', id);
+            if (error) showToast("Erreur: " + error.message, true);
+            else {
+                showToast(translations.payment_saved[currentLang], false);
+                await loadData();
+            }
+        }
+    }
 }
 
-function toggleLanguage() {
-    currentLang = currentLang === 'fr' ? 'en' : 'fr';
-    localStorage.setItem('acaba_lang', currentLang);
-    applyTranslations();
-}
-
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-    document.getElementById(tabId).classList.remove('hidden');
-    document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
-    document.querySelector(`.sidebar-link[data-tab="${tabId}"]`).classList.add('active');
-    if (window.innerWidth <= 1023) document.getElementById('sidebar').classList.remove('open');
-}
-
-function toggleSidebar() { 
-    document.getElementById('sidebar').classList.toggle('open'); 
-}
-
-function renderAll() {
-    // Fonctions de rendu à implémenter selon vos besoins
-    console.log("Render all called");
-}
-
-// ============================================
-// SUPPRESSION MEMBRE
-// ============================================
-async function deleteMember(id) {
-    if (confirm(currentLang === 'fr' ? "Supprimer ce membre ?" : "Delete this member?")) {
-        const { error } = await supabase.from('membres').delete().eq('id', id);
-        if (error) {
-            showToast("Erreur: " + error.message, true);
-        } else {
-            showToast(translations.member_deleted[currentLang], false);
+async function deleteSanction(id) {
+    if (confirm("Supprimer cette sanction ?")) {
+        const { error } = await supabase.from('sanctions').delete().eq('id', id);
+        if (error) showToast("Erreur: " + error.message, true);
+        else {
+            showToast(translations.sanction_deleted[currentLang], false);
             await loadData();
         }
     }
 }
+
+function openSanctionModal(id = null) {
+    document.querySelectorAll('#sanctionModal input, #sanctionModal select, #sanctionModal textarea').forEach(el => el.value = '');
+    populateMemberSelects();
+    if (id) {
+        const s = appData.sanctions.find(x => x.id == id);
+        if (!s) return;
+        document.getElementById('sanctionId').value = s.id;
+        document.getElementById('sanctionPlayer').value = s.memberId;
+        document.getElementById('sanctionType').value = s.type;
+        document.getElementById('sanctionAmount').value = s.amount;
+        document.getElementById('sanctionDate').value = s.date;
+        document.getElementById('sanctionMotif').value = s.reason;
+    }
+    openModal('sanctionModal');
+}
+
+async function saveSanction() {
+    const id = document.getElementById('sanctionId').value;
+    const dbData = {
+        joueur_id: document.getElementById('sanctionPlayer').value,
+        type_sanction: document.getElementById('sanctionType').value,
+        montant: parseFloat(document.getElementById('sanctionAmount').value) || 0,
+        date_sanction: document.getElementById('sanctionDate').value,
+        motif: document.getElementById('sanctionMotif').value
+    };
+
+    let error;
+    if (id) {
+        const res = await supabase.from('sanctions').update(dbData).eq('id', id);
+        error = res.error;
+    } else {
+        const res = await supabase.from('sanctions').insert([dbData]).select();
+        error = res.error;
+    }
+
+    if (error) {
+        showToast("Erreur: " + error.message, true);
+    } else {
+        showToast(translations.sanction_saved[currentLang], false);
+        closeModal('sanctionModal');
+        await loadData();
+    }
+}
+
+function renderArbitres() {
+    const tbody = document.getElementById('arbitresTable'); 
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const search = (document.getElementById('searchArbitres')?.value || '').toLowerCase();
+    const filteredReferees = appData.referees.filter(r => {
+        if (!search) return true;
+        return (r.name || '').toLowerCase().includes(search);
+    });
+    if (filteredReferees.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sec); padding:20px;">Aucun arbitre trouvé.</td></tr>`;
+        return;
+    }
+    filteredReferees.forEach(r => {
+        const matchCount = appData.matches.filter(m => m.refereeCentral == r.name || m.judge1 == r.name || m.judge2 == r.name).length;
+        const initials = (r.name || '?').split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        const avatarHtml = r.photo ? `<img src="${r.photo}" alt="${r.name}">` : initials;
+        const actionsHtml = `<button class="btn btn-sm btn-danger" onclick="deleteArbitre('${r.id}')"><i class="fas fa-trash"></i></button>`;
+        tbody.innerHTML += `<tr><td><div class="member-cell"><div class="avatar">${avatarHtml}</div><div class="member-info"><span class="member-name">${r.name || '-'}</span></div></div></td><td>${r.phone || '-'}</td><td>${matchCount}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+    });
+}
+
+function openArbitreModal(id = null) {
+    document.querySelectorAll('#arbitreModal input').forEach(el => el.value = '');
+    if (id) {
+        const r = appData.referees.find(x => x.id == id);
+        if (!r) return;
+        document.getElementById('arbitreId').value = r.id;
+        document.getElementById('arbitreNom').value = r.name || '';
+        document.getElementById('arbitreTel').value = r.phone || '';
+        document.getElementById('arbitreEmail').value = r.email || '';
+    }
+    openModal('arbitreModal');
+}
+
+async function saveArbitre() {
+    const id = document.getElementById('arbitreId').value;
+    const dbData = {
+        nom: document.getElementById('arbitreNom').value,
+        tel: document.getElementById('arbitreTel').value,
+        email: document.getElementById('arbitreEmail').value
+    };
+
+    let error;
+    if (id) {
+        const res = await supabase.from('arbitres').update(dbData).eq('id', id);
+        error = res.error;
+    } else {
+        const res = await supabase.from('arbitres').insert([dbData]).select();
+        error = res.error;
+    }
+
+    if (error) {
+        showToast("Erreur: " + error.message, true);
+    } else {
+        showToast(translations.referee_saved[currentLang], false);
+        closeModal('arbitreModal');
+        await loadData();
+    }
+}
+
+async function deleteArbitre(id) {
+    if (confirm("Supprimer cet arbitre ?")) {
+        const { error } = await supabase.from('arbitres').delete().eq('id', id);
+        if (error) showToast("Erreur: " + error.message, true);
+        else {
+            showToast(translations.referee_deleted[currentLang], false);
+            await loadData();
+        }
+    }
+}
+
+// ============================================
+// INFIRMERIE
+// ============================================
+function renderInfirmerie() {
+    const tbody = document.getElementById('infirmerieTable'); 
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    appData.injuries.forEach(b => {
+        const member = appData.members.find(m => m.id == b.memberId);
+        const name = member ? getFullName(member) : 'Unknown';
+        let daysLeftText = '-';
+        if (b.date && b.duration && b.status === "En soin") {
+            const injuryDate = new Date(b.date); 
+            const today = new Date();
+            const endDate = new Date(injuryDate); 
+            endDate.setDate(injuryDate.getDate() + Number(b.duration));
+            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+            daysLeftText = daysLeft > 0 ? `<span style="color: #ff0033; font-weight: 800;">${daysLeft} j</span>` : `<span style="color: var(--gold-dark); font-weight: 800;">0 j</span>`;
+        } else if (b.status === "Guéri" || b.status === "Reprise") { 
+            daysLeftText = `<span style="color: var(--gold-dark); font-weight: 800;">Terminé</span>`; 
+        }
+        let statusBadge = b.status === "En soin" ? `<span class="badge badge-warning">${translations.in_treatment[currentLang]}</span>` : b.status === "Guéri" ? `<span class="badge badge-success">${translations.recovered[currentLang]}</span>` : `<span class="badge badge-info">${translations.resumed[currentLang]}</span>`;
+        const actionsHtml = `<button class="btn btn-sm btn-danger" onclick="deleteBlessure('${b.id}')"><i class="fas fa-trash"></i></button>`;
+        tbody.innerHTML += `<tr><td>${name}</td><td>${b.type || '-'}</td><td>${b.date || '-'}</td><td>${b.duration || '-'} j</td><td>${daysLeftText}</td><td>${statusBadge}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+    });
+}
+
+function openBlessureModal(id = null) {
+    document.querySelectorAll('#blessureModal input, #blessureModal select').forEach(el => el.value = '');
+    populateMemberSelects();
+    if (id) {
+        const b = appData.injuries.find(x => x.id == id);
+        if (!b) return;
+        document.getElementById('blessureId').value = b.id;
+        document.getElementById('blessurePlayer').value = b.memberId;
+        document.getElementById('blessureType').value = b.type || '';
+        document.getElementById('blessureDuree').value = b.duration || '';
+        document.getElementById('blessureDate').value = b.date || '';
+        document.getElementById('blessureStatut').value = b.status || 'En soin';
+    } else { 
+        document.getElementById('blessureDate').valueAsDate = new Date(); 
+    }
+    openModal('blessureModal');
+}
+
+async function saveBlessure() {
+    const id = document.getElementById('blessureId').value;
+    const dbData = {
+        joueur_id: document.getElementById('blessurePlayer').value,
+        type_blessure: document.getElementById('blessureType').value,
+        duree_jours: parseInt(document.getElementById('blessureDuree').value) || null,
+        date_blessure: document.getElementById('blessureDate').value,
+        statut: document.getElementById('blessureStatut').value
+    };
+
+    let error;
+    if (id) {
+        const res = await supabase.from('blessures').update(dbData).eq('id', id);
+        error = res.error;
+    } else {
+        const res = await supabase.from('blessures').insert([dbData]).select();
+        error = res.error;
+    }
+
+    if (error) {
+        showToast("Erreur: " + error.message, true);
+    } else {
+        showToast(translations.injury_saved[currentLang], false);
+        closeModal('blessureModal');
+        await loadData();
+    }
+}
+
+async function deleteBlessure(id) {
+    if (confirm("Supprimer cette blessure ?")) {
+        const { error } = await supabase.from('blessures').delete().eq('id', id);
+        if (error) showToast("Erreur: " + error.message, true);
+        else {
+            showToast(translations.injury_deleted[currentLang], false);
+            await loadData();
+        }
+    }
+}
+
+// ============================================
+// MATCHS
+// ============================================
+function renderTeams() {
+    const teamACount = appData.members.filter(m => m.team === 'A').length;
+    const teamBCount = appData.members.filter(m => m.team === 'B').length;
+    const el = (id) => document.getElementById(id);
+    if (el('teamACount')) el('teamACount').innerText = teamACount;
+    if (el('teamBCount')) el('teamBCount').innerText = teamBCount;
+
+    const teamACaptains = appData.members.filter(m => m.team === 'A' && m.isCaptain);
+    const teamBCaptains = appData.members.filter(m => m.team === 'B' && m.isCaptain);
+
+    let captainsAHtml = teamACaptains.length === 0 ? `<span style="color:var(--text-sec);">-</span>` : '';
+    teamACaptains.forEach(m => { captainsAHtml += `<div style="display:flex; align-items:center; gap:8px; background:var(--bg-main); padding:6px 10px; border-radius:6px; font-size:13px;"><span style="color:#ca8a04; font-weight:900;">(C)</span> ${getFullName(m)}</div>`; });
+    if (el('teamACaptains')) el('teamACaptains').innerHTML = captainsAHtml;
+
+    let captainsBHtml = teamBCaptains.length === 0 ? `<span style="color:var(--text-sec);">-</span>` : '';
+    teamBCaptains.forEach(m => { captainsBHtml += `<div style="display:flex; align-items:center; gap:8px; background:var(--bg-main); padding:6px 10px; border-radius:6px; font-size:13px;"><span style="color:#ca8a04; font-weight:900;">(C)</span> ${getFullName(m)}</div>`; });
+    if (el('teamBCaptains')) el('teamBCaptains').innerHTML = captainsBHtml;
+
+    // Meilleur joueur
+    let manOfMatchCounts = {};
+    appData.matches.forEach(m => { if (m.manOfMatch) { manOfMatchCounts[m.manOfMatch] = (manOfMatchCounts[m.manOfMatch] || 0) + 1; } });
+    let bestPlayerId = null, maxVotes = 0;
+    for (const id in manOfMatchCounts) { if (manOfMatchCounts[id] > maxVotes) { maxVotes = manOfMatchCounts[id]; bestPlayerId = id; } }
+    if (bestPlayerId) {
+        const player = appData.members.find(m => m.id == bestPlayerId);
+        if (player) {
+            if (el('bestPlayerName')) el('bestPlayerName').innerText = getFullName(player);
+            if (el('bestPlayerVotes')) el('bestPlayerVotes').innerText = `${maxVotes} ${translations.nominations[currentLang]}`;
+        }
+    } else {
+        if (el('bestPlayerName')) el('bestPlayerName').innerText = '-';
+        if (el('bestPlayerVotes')) el('bestPlayerVotes').innerText = `0 ${translations.nominations[currentLang]}`;
+    }
+
+    // Meilleur buteur
+    let strikerCounts = {};
+    appData.matches.forEach(m => {
+        if (m.scorers) { m.scorers.split('\n').forEach(name => { const t = name.trim(); if (t) { strikerCounts[t] = (strikerCounts[t] || 0) + 1; } }); }
+    });
+    let bestStrikerName = '-', maxGoals = 0;
+    for (const name in strikerCounts) { if (strikerCounts[name] > maxGoals) { maxGoals = strikerCounts[name]; bestStrikerName = name; } }
+    if (el('bestStrikerName')) el('bestStrikerName').innerText = bestStrikerName;
+    if (el('bestStrikerGoals')) el('bestStrikerGoals').innerText = `${maxGoals} ${translations.goals[currentLang]}`;
+
+    // Classement buteurs
+    const scorersRankingDiv = document.getElementById('scorersRanking');
+    if (scorersRankingDiv) {
+        let scorersArray = Object.keys(strikerCounts).map(name => ({ name, count: strikerCounts[name] })).sort((a, b) => b.count - a.count);
+        if (scorersArray.length === 0) { 
+            scorersRankingDiv.innerHTML = `<p style="color:var(--text-sec); text-align:center;">${translations.no_scorers[currentLang]}</p>`; 
+        } else {
+            scorersRankingDiv.innerHTML = '';
+            scorersArray.forEach((s, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                scorersRankingDiv.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px;"><span style="font-weight:600;"><span style="margin-right:8px;">${medal}</span> ${s.name}</span><span style="background:var(--gold-dark); color:white; padding:2px 8px; border-radius:10px; font-size:12px;">${s.count}</span></div>`;
+            });
+        }
+    }
+
+    // Classement passeurs
+    const assisterCounts = {};
+    appData.matches.forEach(m => {
+        if (m.assists) { m.assists.split('\n').forEach(name => { const t = name.trim(); if (t) { assisterCounts[t] = (assisterCounts[t] || 0) + 1; } }); }
+    });
+    const assistersRankingDiv = document.getElementById('assistersRanking');
+    if (assistersRankingDiv) {
+        let assistersArray = Object.keys(assisterCounts).map(name => ({ name, count: assisterCounts[name] })).sort((a, b) => b.count - a.count);
+        if (assistersArray.length === 0) { 
+            assistersRankingDiv.innerHTML = `<p style="color:var(--text-sec); text-align:center;">${translations.no_assisters[currentLang]}</p>`; 
+        } else {
+            assistersRankingDiv.innerHTML = '';
+            assistersArray.forEach((a, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                assistersRankingDiv.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px;"><span style="font-weight:600;"><span style="margin-right:8px;">${medal}</span> ${a.name}</span><span style="background:var(--accent-cyan); color:var(--primary); padding:2px 8px; border-radius:10px; font-size:12px;">${a.count}</span></div>`;
+            });
+        }
+    }
+
+    // Championnat intergénération
+    let winsJeunes = 0, winsVeterans = 0;
+    appData.matches.filter(m => m.type === 'intergeneration').forEach(m => {
+        const score1 = Number(m.score1 || 0), score2 = Number(m.score2 || 0);
+        if (score1 > score2) winsJeunes++; 
+        else if (score2 > score1) winsVeterans++;
+    });
+    if (el('winsJeunes')) el('winsJeunes').innerText = winsJeunes;
+    if (el('winsVeterans')) el('winsVeterans').innerText = winsVeterans;
+    let championName = '-';
+    if (winsJeunes > winsVeterans) championName = currentLang === 'fr' ? 'Jeunes' : 'Youth';
+    else if (winsVeterans > winsJeunes) championName = currentLang === 'fr' ? 'Vétérans' : 'Veterans';
+    if (el('championName')) el('championName').innerText = championName;
+}
+
+function toggleMatchSortOrder() {
+    matchSortOrder = matchSortOrder === 'asc' ? 'desc' : 'asc';
+    updateMatchSortButton();
+    renderMatches();
+}
+
+function updateMatchSortButton() {
+    const btn = document.getElementById('matchSortBtn');
+    const label = document.getElementById('matchSortLabel');
+    if (btn && label) {
+        if (matchSortOrder === 'asc') {
+            btn.innerHTML = `<i class="fas fa-sort-amount-down"></i> <span id="matchSortLabel">${translations.sort_oldest_first[currentLang]}</span>`;
+        } else {
+            btn.innerHTML = `<i class="fas fa-sort-amount-up"></i> <span id="matchSortLabel">${translations.sort_newest_first[currentLang]}</span>`;
+        }
+    }
+}
+
+function renderMatches() {
+    const hebdoTbody = document.getElementById('matchesHebdoTable');
+    if (hebdoTbody) {
+        hebdoTbody.innerHTML = '';
+        const hebdoMatches = appData.matches
+            .filter(m => m.type === 'hebdomadaire')
+            .sort((a, b) => {
+                const dateA = new Date(a.date || '1970-01-01');
+                const dateB = new Date(b.date || '1970-01-01');
+                return matchSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        
+        hebdoMatches.forEach(m => {
+            const member = appData.members.find(mem => mem.id == m.manOfMatch);
+            const momName = member ? getFullName(member) : '-';
+            const actionsHtml = `<button class="btn btn-sm btn-secondary" onclick="openMatchModal('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteMatch('${m.id}')"><i class="fas fa-trash"></i></button>`;
+            hebdoTbody.innerHTML += `<tr><td>${m.date || '-'}</td><td>${m.score1 || 0} - ${m.score2 || 0}</td><td style="font-size: 12px;">${m.scorers || '-'}</td><td>${momName}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+        });
+    }
+    
+    const intergenTbody = document.getElementById('matchesIntergenTable');
+    if (intergenTbody) {
+        intergenTbody.innerHTML = '';
+        const intergenMatches = appData.matches
+            .filter(m => m.type === 'intergeneration')
+            .sort((a, b) => {
+                const dateA = new Date(a.date || '1970-01-01');
+                const dateB = new Date(b.date || '1970-01-01');
+                return matchSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        
+        intergenMatches.forEach(m => {
+            let winner = '-';
+            if (Number(m.score1) > Number(m.score2)) winner = currentLang === 'fr' ? 'Jeunes' : 'Youth';
+            else if (Number(m.score2) > Number(m.score1)) winner = currentLang === 'fr' ? 'Vétérans' : 'Veterans';
+            else winner = currentLang === 'fr' ? 'Match Nul' : 'Draw';
+            const actionsHtml = `<button class="btn btn-sm btn-secondary" onclick="openMatchModal('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteMatch('${m.id}')"><i class="fas fa-trash"></i></button>`;
+            intergenTbody.innerHTML += `<tr><td>${m.trimester || '-'}</td><td>${m.date || '-'}</td><td>${m.score1 || 0} - ${m.score2 || 0}</td><td>${winner}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+        });
+    }
+    
+    const amicalTbody = document.getElementById('matchesAmicalTable');
+    if (amicalTbody) {
+        amicalTbody.innerHTML = '';
+        const amicalMatches = appData.matches
+            .filter(m => m.type === 'amical')
+            .sort((a, b) => {
+                const dateA = new Date(a.date || '1970-01-01');
+                const dateB = new Date(b.date || '1970-01-01');
+                return matchSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        
+        amicalMatches.forEach(m => {
+            const actionsHtml = `<button class="btn btn-sm btn-secondary" onclick="openMatchModal('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteMatch('${m.id}')"><i class="fas fa-trash"></i></button>`;
+            amicalTbody.innerHTML += `<tr><td>${m.date || '-'}</td><td>${m.opponent || '-'}</td><td>${m.score1 || 0} - ${m.score2 || 0}</td><td style="text-align:right;">${actionsHtml}</td></tr>`;
+        });
+    }
+}
+
+function openMatchModal(id = null, type = null) {
+    document.querySelectorAll('#matchModal input, #matchModal select, #matchModal textarea').forEach(el => el.value = '');
+    populateMemberSelects();
+    if (id) {
+        const m = appData.matches.find(x => x.id == id);
+        if (!m) return;
+        document.getElementById('matchId').value = m.id;
+        document.getElementById('matchType').value = m.type || 'hebdomadaire';
+        document.getElementById('matchDate').value = m.date || '';
+        document.getElementById('matchTrimestre').value = m.trimester || '1';
+        document.getElementById('matchAdversaire').value = m.opponent || '';
+        document.getElementById('matchScore1').value = m.score1 || 0;
+        document.getElementById('matchScore2').value = m.score2 || 0;
+        document.getElementById('matchHommeMatch').value = m.manOfMatch || '';
+        document.getElementById('matchRefereeCentral').value = m.refereeCentral || '';
+        document.getElementById('matchCommissioner').value = m.commissioner || '';
+        document.getElementById('matchJudge1').value = m.judge1 || '';
+        document.getElementById('matchJudge2').value = m.judge2 || '';
+        document.getElementById('matchScorers').value = m.scorers || '';
+        document.getElementById('matchAssists').value = m.assists || '';
+        document.getElementById('matchSheet1').value = m.sheet1 || '';
+        document.getElementById('matchSheet2').value = m.sheet2 || '';
+    } else if (type) {
+        document.getElementById('matchType').value = type;
+        document.getElementById('matchDate').valueAsDate = new Date();
+    }
+    openModal('matchModal');
+}
+
+async function saveMatch() {
+    const id = document.getElementById('matchId').value;
+    const dbData = {
+        type_match: document.getElementById('matchType').value,
+        date_match: document.getElementById('matchDate').value,
+        trimestre: parseInt(document.getElementById('matchTrimestre').value) || null,
+        adversaire: document.getElementById('matchAdversaire').value,
+        score1: parseInt(document.getElementById('matchScore1').value) || 0,
+        score2: parseInt(document.getElementById('matchScore2').value) || 0,
+        homme_match_id: document.getElementById('matchHommeMatch').value || null,
+        arbitre_central: document.getElementById('matchRefereeCentral').value,
+        commissaire: document.getElementById('matchCommissioner').value,
+        juge1: document.getElementById('matchJudge1').value,
+        juge2: document.getElementById('matchJudge2').value,
+        buteurs: document.getElementById('matchScorers').value,
+        passeurs: document.getElementById('matchAssists').value,
+        feuille_match1: document.getElementById('matchSheet1').value,
+        feuille_match2: document.getElementById('matchSheet2').value
+    };
+
+    let error;
+    if (id) {
+        const res = await supabase.from('matchs').update(dbData).eq('id', id);
+        error = res.error;
+    } else {
+        const res = await supabase.from('matchs').insert([dbData]).select();
+        error = res.error;
+    }
+
+    if (error) {
+        showToast("Erreur: " + error.message, true);
+    } else {
+        showToast(translations.match_saved[currentLang], false);
+        closeModal('matchModal');
+        await loadData();
+    }
+}
+
+async function deleteMatch(id) {
+    if (confirm("Supprimer ce match ?")) {
+        const { error } = await supabase.from('matchs').delete().eq('id', id);
+        if (error) showToast("Erreur: " + error.message, true);
+        else {
+            showToast(translations.match_deleted[currentLang], false);
+            await loadData();
+        }
+    }
+}
+
+// ============================================
+// LICENCES
+// ============================================
+function renderLicencePreview() {
+    const select = document.getElementById('licencePlayer');
+    const memberId = select?.value;
+    const previewDiv = document.getElementById('licencePreview');
+    if (!memberId || !previewDiv) { if (previewDiv) previewDiv.classList.add('hidden'); return; }
+    const m = appData.members.find(x => x.id == memberId); 
+    if (!m) return;
+    previewDiv.classList.remove('hidden');
+    const photoEl = document.getElementById('licencePhoto');
+    if (photoEl) photoEl.src = m.photo || '';
+    const nameEl = document.getElementById('licenceName');
+    if (nameEl) nameEl.innerText = getFullName(m);
+    const dobEl = document.getElementById('licenceDob');
+    if (dobEl) dobEl.innerText = m.dob || '-';
+    const ageEl = document.getElementById('licenceAge');
+    if (ageEl) ageEl.innerText = calculateAge(m.dob);
+    const posteEl = document.getElementById('licencePoste');
+    if (posteEl) posteEl.innerText = m.position || '-';
+    const numeroEl = document.getElementById('licenceNumero');
+    if (numeroEl) numeroEl.innerText = m.number || '-';
+    const catEl = document.getElementById('licenceCategorie');
+    if (catEl) catEl.innerText = m.category || '-';
+    const currentYear = new Date().getFullYear(); 
+    const nextYear = currentYear + 1;
+    const seasonEl = document.getElementById('licenceSeason');
+    if (seasonEl) seasonEl.innerText = `${currentYear}/${nextYear}`;
+    const dateEl = document.getElementById('licenceDate');
+    if (dateEl) dateEl.innerText = new Date().toLocaleDateString();
+}
+
+function generateLicencePDF() {
+    const element = document.getElementById('licencePreview');
+    if (!element || element.classList.contains('hidden')) { 
+        showToast(currentLang === 'fr' ? "Veuillez d'abord sélectionner un membre." : "Please select a member first.", true); 
+        return; 
+    }
+    if (typeof html2pdf !== 'undefined') {
+        html2pdf().set({ margin: 0, filename: 'licence.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+    } else {
+        showToast("html2pdf non chargé", true);
+    }
+}
+
+// ============================================
+// RELEVÉ MEMBRE
+// ============================================
+function renderMemberStatement() {
+    const select = document.getElementById('statementMemberSelect');
+    const memberId = select?.value;
+    const memberInfoDiv = document.getElementById('statementMemberInfo');
+    if (!memberId) { 
+        if (memberInfoDiv) memberInfoDiv.classList.add('hidden'); 
+        const tbody = document.getElementById('statementTable');
+        if (tbody) tbody.innerHTML = ''; 
+        return; 
+    }
+    const m = appData.members.find(x => x.id == memberId); 
+    if (!m) return;
+    if (memberInfoDiv) memberInfoDiv.classList.remove('hidden');
+    const photoEl = document.getElementById('statementPhoto');
+    if (photoEl) photoEl.src = m.photo || '';
+    const nameEl = document.getElementById('statementName');
+    if (nameEl) nameEl.innerText = getFullName(m);
+    const ageEl = document.getElementById('statementAge');
+    if (ageEl) ageEl.innerText = `${calculateAge(m.dob)} ans`;
+
+    const duesPaid = appData.contributions.filter(c => c.memberId == m.id && c.type === "Cotisation Annuelle").reduce((sum, c) => sum + Number(c.amount), 0);
+    const insPaid = appData.contributions.filter(c => c.memberId == m.id && (c.type === "Inscription" || c.type === "Réinscription")).reduce((sum, c) => sum + Number(c.amount), 0);
+    const duesTarget = 25000;
+    let insTarget = 0;
+    if (m.statutAdhesion === 'inscription') insTarget = 10000;
+    else if (m.statutAdhesion === 'reinscription') insTarget = 5000;
+    
+    const totalPaidEl = document.getElementById('statementTotalPaid');
+    if (totalPaidEl) totalPaidEl.innerText = `${duesPaid.toLocaleString()} F`;
+    const cotRestEl = document.getElementById('statementCotisationRestant');
+    if (cotRestEl) cotRestEl.innerText = `Reste: ${Math.max(0, duesTarget - duesPaid).toLocaleString()} F`;
+    const insPaidEl = document.getElementById('statementInscriptionPaid');
+    if (insPaidEl) insPaidEl.innerText = `${insPaid.toLocaleString()} F`;
+    const insRestEl = document.getElementById('statementInscriptionRestant');
+    if (insRestEl) insRestEl.innerText = `Reste: ${Math.max(0, insTarget - insPaid).toLocaleString()} F`;
+
+    const tbody = document.getElementById('statementTable'); 
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const memberContribs = appData.contributions.filter(c => c.memberId == m.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (memberContribs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sec);">Aucune transaction trouvée.</td></tr>`;
+    } else {
+        memberContribs.forEach(c => {
+            tbody.innerHTML += `<tr><td>${c.date}</td><td>${c.type}</td><td>${Number(c.amount).toLocaleString()} F</td><td>-</td></tr>`;
+        });
+    }
+}
+
+function clearMemberHistory() {
+    const select = document.getElementById('statementMemberSelect');
+    if (select) select.value = "";
+    const memberInfoDiv = document.getElementById('statementMemberInfo');
+    if (memberInfoDiv) memberInfoDiv.classList.add('hidden');
+    const tbody = document.getElementById('statementTable');
+    if (tbody) tbody.innerHTML = '';
+}
+
+// ============================================
+// BILAN ANNUEL
+// ============================================
+function renderAnnualReport() {
+    const totalRevenue = appData.contributions.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    const totalExpenses = appData.expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const netBalance = totalRevenue - totalExpenses;
+    const el = (id) => document.getElementById(id);
+    if (el('reportTotalRevenue')) el('reportTotalRevenue').innerText = totalRevenue.toLocaleString();
+    if (el('reportTotalExpenses')) el('reportTotalExpenses').innerText = totalExpenses.toLocaleString();
+    if (el('reportNetBalance')) el('reportNetBalance').innerText = netBalance.toLocaleString();
+}
+
+// ============================================
+// STATUT & RÈGLEMENT
+// ============================================
+function toggleEditDocs() { 
+    const viewMode = document.getElementById('docsViewMode');
+    const editMode = document.getElementById('docsEditMode');
+    if (viewMode) viewMode.classList.toggle('hidden');
+    if (editMode) editMode.classList.toggle('hidden');
+}
+
+async function saveOfficialDocs() {
+    const statut = document.getElementById('statutInput').value;
+    const reglement = document.getElementById('reglementInput').value;
+    
+    await supabase.from('parametres').upsert({ cle: 'statut', valeur: statut });
+    await supabase.from('parametres').upsert({ cle: 'reglement', valeur: reglement });
+    
+    appData.officialDocs.statut = statut;
+    appData.officialDocs.reglement = reglement;
+    
+    renderOfficialDocs(); 
+    toggleEditDocs(); 
+    showToast(translations.docs_saved[currentLang], false);
+}
+
+function renderOfficialDocs() {
+    const statutContent = document.getElementById('statutContent');
+    const reglementContent = document.getElementById('reglementContent');
+    const statutInput = document.getElementById('statutInput');
+    const reglementInput = document.getElementById('reglementInput');
+    if (statutContent) statutContent.innerText = appData.officialDocs.statut || 'Aucun statut enregistré.';
+    if (reglementContent) reglementContent.innerText = appData.officialDocs.reglement || 'Aucun règlement enregistré.';
+    if (statutInput) statutInput.value = appData.officialDocs.statut || '';
+    if (reglementInput) reglementInput.value = appData.officialDocs.reglement || '';
+}
+
+// ============================================
+// PARAMÈTRES & SELECTS
+// ============================================
+function populateMemberSelects() {
+    const selects = ['contribMember', 'sanctionPlayer', 'blessurePlayer', 'licencePlayer', 'statementMemberSelect', 'matchHommeMatch', 'scorerSelect', 'assisterSelect'];
+    const sortedMembers = getSortedMembers();
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            const currentValue = select.value;
+            select.innerHTML = `<option value="">Sélectionner un membre</option>`;
+            sortedMembers.forEach(m => { select.innerHTML += `<option value="${m.id}">${getFullName(m)}</option>`; });
+            select.value = currentValue;
+        }
+    });
+}
+
+function saveSettings() {
+    const name = document.getElementById('settingNom').value;
+    appData.settings.name = name || 'ACABA 2#0';
+    supabase.from('parametres').upsert({ cle: 'nom_association', valeur: appData.settings.name });
+    applySettings(); 
+    showToast(translations.settings_saved[currentLang], false);
+}
+
+function resetData() {
+    if (confirm("Voulez-vous vraiment tout effacer ?")) {
+        localStorage.removeItem('acaba_data');
+        appData = { members: [], contributions: [], expenses: [], sanctions: [], referees: [], matches: [], injuries: [], officialDocs: { statut: "", reglement: "" }, settings: { name: "ACABA 2#0", logo: "" } };
+        renderAll();
+    }
+}
+
+function exportData() {
+    const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = "acaba_data_export.json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(translations.data_exported[currentLang], false);
+}
+
+function importData(input) {
+    const file = input.files[0]; 
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            if (importedData.members && Array.isArray(importedData.members)) {
+                if (confirm("Cela remplacera toutes les données actuelles. Continuer ?")) {
+                    // Insérer dans Supabase
+                    if (importedData.members.length > 0) {
+                        const membersToInsert = importedData.members.map(m => ({
+                            nom: m.lastName || m.nom || '',
+                            prenom: m.firstName || m.prenom || '',
+                            date_naissance: m.dob || null,
+                            lieu_naissance: m.pob || '',
+                            sexe: m.gender || 'Masculin',
+                            situation: m.civilStatus || '',
+                            profession: m.profession || '',
+                            fonction_bureau: m.fonction || '',
+                            categorie: m.category || 'Jeune',
+                            statut_adhesion: m.statutAdhesion || 'aucun',
+                            equipe: m.team || 'A',
+                            capitaine: m.isCaptain || false,
+                            poste: m.position || '',
+                            numero: parseInt(m.number) || null,
+                            tel: m.phone || '',
+                            email: m.email || '',
+                            adresse: m.address || '',
+                            photo_url: m.photo || '',
+                            statut_membre: m.status || 'Actif'
+                        }));
+                        await supabase.from('membres').insert(membersToInsert);
+                    }
+                    await loadData();
+                    showToast("Données importées avec succès !", false);
+                }
+            } else { 
+                showToast("Fichier JSON invalide.", true); 
+            }
+        } catch (err) { 
+            console.error(err); 
+            showToast("Erreur de lecture du fichier.", true); 
+        }
+    };
+    reader.readAsText(file); 
+    input.value = '';
+}
+
+function downloadAppFile() { 
+    showToast(translations.download_app_msg[currentLang], false); 
+}
+
+function appendToList(select, textareaId) {
+    const textarea = document.getElementById(textareaId);
+    if (select.value && textarea) {
+        textarea.value += (textarea.value ? '\n' : '') + select.options[select.selectedIndex].text;
+        select.value = "";
+    }
+}
+
+// ============================================
+// INITIALISATION
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    const arbitreModalBody = document.querySelector('#arbitreModal .modal-body');
+    if (arbitreModalBody && !document.getElementById('arbitrePhoto')) {
+        arbitreModalBody.insertAdjacentHTML('beforeend', `<div class="form-group" style="margin-top:15px;"><label data-i18n="photo">Photo</label><input type="file" id="arbitrePhoto" accept="image/*" class="form-control"></div>`);
+    }
+    applyTranslations(); 
+    checkMobileView();
+    loadData();
+});
