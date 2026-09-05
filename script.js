@@ -1671,32 +1671,193 @@ function importData(input) {
       const importedData = JSON.parse(e.target.result);
       if (importedData.members && Array.isArray(importedData.members)) {
         if (confirm("Cela remplacera toutes les données actuelles. Continuer ?")) {
+          showToast("Importation en cours... Ne fermez pas la page.", false);
+          
+          // 1. Importer les membres et créer un mapping des IDs
+          const idMapping = {};
           if (importedData.members.length > 0) {
             const membersToInsert = importedData.members.map(m => ({
               nom: m.lastName || m.nom || '',
               prenom: m.firstName || m.prenom || '',
-              date_naissance: m.dob || null,
-              lieu_naissance: m.pob || '',
-              sexe: m.gender || 'Masculin',
-              situation: m.civilStatus || '',
+              date_naissance: m.dob || m.dateNaissance || null,
+              lieu_naissance: m.pob || m.lieuNaissance || '',
+              sexe: m.gender || m.sexe || 'Masculin',
+              situation: m.civilStatus || m.situation || '',
               profession: m.profession || '',
-              fonction_bureau: m.fonction || '',
-              categorie: m.category || 'Jeune',
-              statut_adhesion: m.statutAdhesion || 'aucun',
-              equipe: m.team || 'A',
-              capitaine: m.isCaptain || false,
-              poste: m.position || '',
+              fonction_bureau: m.fonction || m.fonction_bureau || '',
+              categorie: m.category || m.categorie || 'Jeune',
+              statut_adhesion: m.statutAdhesion || m.statut_adhesion || 'aucun',
+              equipe: m.team || m.equipe || 'A',
+              capitaine: m.isCaptain || m.capitaine || false,
+              poste: m.position || m.poste || '',
               numero: parseInt(m.number) || null,
-              tel: m.phone || '',
+              tel: m.phone || m.tel || '',
               email: m.email || '',
-              adresse: m.address || '',
+              adresse: m.address || m.adresse || '',
               photo_url: m.photo || '',
-              statut_membre: m.status || 'Actif'
+              statut_membre: m.status || m.statut_membre || 'Actif'
             }));
-            await supabaseClient.from('membres').insert(membersToInsert);
+            
+            const { data: insertedMembers, error: memberError } = await supabaseClient
+              .from('membres')
+              .insert(membersToInsert)
+              .select();
+            
+            if (memberError) {
+              console.error('Erreur membres:', memberError);
+              showToast('Erreur membres: ' + memberError.message, true);
+              return;
+            }
+            
+            // Créer le mapping : ancien ID -> nouvel ID Supabase
+            insertedMembers.forEach((newMember, index) => {
+              const oldMember = importedData.members[index];
+              idMapping[oldMember.id] = newMember.id;
+            });
+            
+            console.log('✅ Membres importés:', insertedMembers.length);
           }
-          await loadData();
-          showToast("Données importées avec succès !", false);
+          
+          // 2. Importer les contributions avec les nouveaux memberIds
+          if (importedData.contributions && importedData.contributions.length > 0) {
+            const contribsToInsert = importedData.contributions.map(c => ({
+              membre_id: idMapping[c.memberId] || c.memberId,
+              montant: parseFloat(c.amount) || 0,
+              date_paiement: c.date || c.date_paiement,
+              type_paiement: c.type || c.type_paiement
+            }));
+            
+            const { error: contribError } = await supabaseClient
+              .from('contributions')
+              .insert(contribsToInsert);
+            
+            if (contribError) {
+              console.error('Erreur contributions:', contribError);
+              showToast('Erreur contributions: ' + contribError.message, true);
+            } else {
+              console.log('✅ Contributions importées:', contribsToInsert.length);
+            }
+          }
+          
+          // 3. Importer les dépenses
+          if (importedData.expenses && importedData.expenses.length > 0) {
+            const expensesToInsert = importedData.expenses.map(e => ({
+              montant: parseFloat(e.amount) || 0,
+              date_depense: e.date || e.date_depense,
+              motif: e.reason || e.motif,
+              beneficiaire: e.beneficiary || e.beneficiaire
+            }));
+            
+            const { error: expenseError } = await supabaseClient
+              .from('depenses')
+              .insert(expensesToInsert);
+            
+            if (expenseError) console.error('Erreur dépenses:', expenseError);
+            else console.log('✅ Dépenses importées:', expensesToInsert.length);
+          }
+          
+          // 4. Importer les sanctions
+          if (importedData.sanctions && importedData.sanctions.length > 0) {
+            const sanctionsToInsert = importedData.sanctions.map(s => ({
+              joueur_id: idMapping[s.memberId] || s.memberId,
+              type_sanction: s.type || s.type_sanction,
+              montant: parseFloat(s.amount) || 0,
+              montant_paye: parseFloat(s.amountPaid) || 0,
+              date_sanction: s.date || s.date_sanction,
+              motif: s.reason || s.motif
+            }));
+            
+            const { error: sanctionError } = await supabaseClient
+              .from('sanctions')
+              .insert(sanctionsToInsert);
+            
+            if (sanctionError) console.error('Erreur sanctions:', sanctionError);
+            else console.log('✅ Sanctions importées:', sanctionsToInsert.length);
+          }
+          
+          // 5. Importer les arbitres
+          if (importedData.referees && importedData.referees.length > 0) {
+            const refereesToInsert = importedData.referees.map(r => ({
+              nom: r.name || r.nom,
+              tel: r.phone || r.tel,
+              email: r.email,
+              photo_url: r.photo || r.photo_url
+            }));
+            
+            const { error: refError } = await supabaseClient
+              .from('arbitres')
+              .insert(refereesToInsert);
+            
+            if (refError) console.error('Erreur arbitres:', refError);
+            else console.log('✅ Arbitres importés:', refereesToInsert.length);
+          }
+          
+          // 6. Importer les matchs
+          if (importedData.matches && importedData.matches.length > 0) {
+            const matchesToInsert = importedData.matches.map(m => ({
+              type_match: m.type || m.type_match,
+              date_match: m.date || m.date_match,
+              trimestre: parseInt(m.trimester) || null,
+              adversaire: m.opponent || m.adversaire,
+              score1: parseInt(m.score1) || 0,
+              score2: parseInt(m.score2) || 0,
+              homme_match_id: idMapping[m.manOfMatch] || m.manOfMatch || null,
+              arbitre_central: m.refereeCentral || m.arbitre_central,
+              commissaire: m.commissioner || m.commissaire,
+              juge1: m.judge1 || m.juge1,
+              juge2: m.judge2 || m.judge2,
+              buteurs: m.scorers || m.buteurs,
+              passeurs: m.assists || m.passeurs,
+              feuille_match1: m.sheet1 || m.feuille_match1,
+              feuille_match2: m.sheet2 || m.feuille_match2
+            }));
+            
+            const { error: matchError } = await supabaseClient
+              .from('matchs')
+              .insert(matchesToInsert);
+            
+            if (matchError) console.error('Erreur matchs:', matchError);
+            else console.log('✅ Matchs importés:', matchesToInsert.length);
+          }
+          
+          // 7. Importer les blessures
+          if (importedData.injuries && importedData.injuries.length > 0) {
+            const injuriesToInsert = importedData.injuries.map(i => ({
+              joueur_id: idMapping[i.memberId] || i.memberId,
+              type_blessure: i.type || i.type_blessure,
+              duree_jours: parseInt(i.duration) || null,
+              date_blessure: i.date || i.date_blessure,
+              statut: i.status || i.statut
+            }));
+            
+            const { error: injuryError } = await supabaseClient
+              .from('blessures')
+              .insert(injuriesToInsert);
+            
+            if (injuryError) console.error('Erreur blessures:', injuryError);
+            else console.log('✅ Blessures importées:', injuriesToInsert.length);
+          }
+          
+          // 8. Importer les paramètres
+          if (importedData.officialDocs) {
+            if (importedData.officialDocs.statut) {
+              await supabaseClient.from('parametres').upsert({ cle: 'statut', valeur: importedData.officialDocs.statut });
+            }
+            if (importedData.officialDocs.reglement) {
+              await supabaseClient.from('parametres').upsert({ cle: 'reglement', valeur: importedData.officialDocs.reglement });
+            }
+          }
+          if (importedData.settings) {
+            if (importedData.settings.name) {
+              await supabaseClient.from('parametres').upsert({ cle: 'nom_association', valeur: importedData.settings.name });
+            }
+            if (importedData.settings.logo) {
+              await supabaseClient.from('parametres').upsert({ cle: 'logo_url', valeur: importedData.settings.logo });
+            }
+          }
+          
+          showToast("✅ Importation terminée ! Rechargement...", false);
+          setTimeout(() => location.reload(), 1500);
         }
       } else {
         showToast("Fichier JSON invalide.", true);
