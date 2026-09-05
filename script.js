@@ -629,9 +629,12 @@ function renderMembersTable() {
       let duesBadgeClass = duesPaid >= 25000 ? "badge-success" : duesPaid >= 15000 ? "badge-warning" : "badge-danger";
       const duesHtml = `<span class="badge ${duesBadgeClass}">${duesPaid.toLocaleString()} F</span>`;
       
-      const statusHtml = m.status === 'Actif'
-        ? `<span class="badge badge-success">Actif</span>`
-        : `<span class="badge badge-muted">Inactif</span>`;
+      // ✅ MODIFICATION ICI : Afficher le statut de cotisation au lieu du statut du membre
+      const statusHtml = duesPaid >= 25000 
+        ? `<span class="badge badge-success">À jour</span>`
+        : duesPaid >= 15000 
+          ? `<span class="badge badge-warning">Partiel</span>`
+          : `<span class="badge badge-danger">En retard</span>`;
       
       const actionsHtml = `<button class="btn btn-sm btn-secondary" onclick="openMemberModal('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteMember('${m.id}')"><i class="fas fa-trash"></i></button>`;
       
