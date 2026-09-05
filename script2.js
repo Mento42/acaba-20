@@ -2,7 +2,7 @@
 // CONFIGURATION SUPABASE - ACABA 2#0
 // ============================================
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-const SUPABASE_KEY = 'VOTRE_CLE_PUBLISHABLE_ICI'; // ⚠️ COLLEZ VOTRE CLÉ COMPLÈTE
+const SUPABASE_KEY = 'sb_publishable_SO6dPdPS8DQzQ3tkx6FXsg_ctWy8X_U'; // ⚠️ COLLEZ VOTRE CLÉ COMPLÈTE
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================
