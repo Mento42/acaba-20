@@ -30,6 +30,12 @@
         <button onclick="toggleLanguage()" class="btn btn-secondary btn-sm" id="langBtn" style="background: rgba(255,255,255,0.1); color:#fff; border:none; flex-shrink: 0;">EN</button>
       </div>
     </div>
+    
+    <!-- Informations de l'utilisateur connecté -->
+    <div id="userInfo" style="padding: 10px 16px; background: rgba(0,255,135,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: var(--gold); display: none;">
+      <i class="fas fa-user-shield"></i> <span id="userInfoText">Chargement...</span>
+    </div>
+    
     <nav style="padding:10px 0;">
       <a href="#" class="sidebar-link active" data-tab="dashboard" onclick="switchTab('dashboard'); return false;"><i class="fas fa-chart-line"></i> <span data-i18n="dashboard">Tableau de Bord</span></a>
       <a href="#" class="sidebar-link" data-tab="members" onclick="switchTab('members'); return false;"><i class="fas fa-users"></i> <span data-i18n="members">Membres</span></a>
@@ -45,6 +51,11 @@
       <a href="#" class="sidebar-link" data-tab="official-docs" onclick="switchTab('official-docs'); return false;"><i class="fas fa-file-contract"></i> <span data-i18n="official-docs">Statut & Règlement</span></a>
       <a href="#" class="sidebar-link" data-tab="share-app" onclick="switchTab('share-app'); return false;"><i class="fas fa-share-nodes"></i> <span data-i18n="share">Partager</span></a>
       <a href="#" class="sidebar-link" data-tab="settings" onclick="switchTab('settings'); return false;"><i class="fas fa-cog"></i> <span data-i18n="settings">Paramètres</span></a>
+      
+      <!-- Bouton de déconnexion -->
+      <a href="#" class="sidebar-link" onclick="logout(); return false;" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; color: #ff6b6b;">
+        <i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Déconnexion</span>
+      </a>
     </nav>
   </aside>
 
@@ -763,7 +774,7 @@
       </div>
     </div>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script src="script.js"></script>
 </body>
 </html>
