@@ -1,6 +1,6 @@
 // ============================================
-// ACABA 2#0 - Script Principal
-// Système : 4 Admins + 1 Compte Membre Partagé
+// ACABA 2#0 - Script Principal Complet
+// Système Multi-utilisateurs : Admin + Bureau + Membres
 // ============================================
 
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
@@ -21,7 +21,7 @@ let categoryChartInstance = null;
 window.currentUser = null;
 
 // ============================================
-// AUTHENTIFICATION
+// AUTHENTIFICATION ET PERMISSIONS
 // ============================================
 
 async function checkAuth() {
@@ -135,18 +135,17 @@ function applyMemberView() {
   
   const role = window.currentUser.role;
   
-  // Pour les membres, limiter la vue
+  // Pour les membres, cacher uniquement "Paramètres" et "Partager"
   if (role === 'membre') {
-    // Onglets cachés pour les membres
-    const hiddenTabs = ['contributions', 'expenses', 'sanctions', 'infirmerie', 
-                        'official-docs', 'settings', 'share-app', 'annual-report', 'members'];
+    // ✅ Seulement ces 2 onglets sont cachés
+    const hiddenTabs = ['settings', 'share-app'];
     
     hiddenTabs.forEach(tabId => {
       const link = document.querySelector(`.sidebar-link[data-tab="${tabId}"]`);
       if (link) link.style.display = 'none';
     });
     
-    // Cacher les boutons d'action
+    // Cacher les boutons d'action (ajout, modification, suppression, export/import)
     document.querySelectorAll('.btn-primary, .btn-secondary, .btn-danger, .btn-gold').forEach(btn => {
       const text = btn.textContent.toLowerCase();
       if (text.includes('nouveau') || text.includes('ajouter') || 
