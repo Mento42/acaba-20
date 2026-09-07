@@ -215,10 +215,10 @@
     
     <form id="loginForm">
       <div class="form-group">
-        <label for="email"><i class="fas fa-user"></i> Email ou Téléphone</label>
+        <label for="email"><i class="fas fa-user"></i> Email</label>
         <div class="input-icon">
           <i class="fas fa-envelope"></i>
-          <input type="text" id="email" class="form-control" placeholder="votre@email.com ou 6XX XXX XXX" required>
+          <input type="email" id="email" class="form-control" placeholder="votre@email.com" required>
         </div>
       </div>
       
@@ -244,19 +244,18 @@
       <p>© 2026 ACABA 2#0</p>
       <p>Association Club des Amis de Biyem-Assi</p>
       <p style="margin-top: 10px;">
-        <a href="#" onclick="resetPassword()"> Mot de passe oublié ?</a>
-      </p>
-      <p style="margin-top: 5px;">
-        <a href="#" onclick="contactAdmin()"> Contacter l'administrateur</a>
+        <a href="#" onclick="resetPassword()">🔑 Mot de passe oublié ?</a>
       </p>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Configuration Supabase
     const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-    const SUPABASE_KEY = 'VOTRE_CLE_PUBLISHABLE_ICI'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = 'sb_publishable_SO6dPdPS8DQzQ3tkx6FXsg_ctWy8X_U'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
@@ -265,10 +264,10 @@
 
     // Vérifier si déjà connecté
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         // Vérifier le rôle
-        const { data: user } = await supabase
+        const { data: user } = await supabaseClient
           .from('utilisateurs')
           .select('role, fonction')
           .eq('email', session.user.email)
@@ -277,7 +276,7 @@
         if (user && ['admin', 'bureau'].includes(user.role)) {
           window.location.href = 'index.html';
         } else {
-          await supabase.auth.signOut();
+          await supabaseClient.auth.signOut();
         }
       }
     }
@@ -297,7 +296,7 @@
       
       try {
         // Essayer de se connecter avec Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
           email: email,
           password: password
         });
@@ -305,7 +304,7 @@
         if (authError) throw authError;
         
         // Vérifier le rôle de l'utilisateur dans la table utilisateurs
-        const { data: user, error: userError } = await supabase
+        const { data: user, error: userError } = await supabaseClient
           .from('utilisateurs')
           .select('role, fonction, membre_id')
           .eq('email', email)
@@ -318,7 +317,7 @@
         }
         
         if (!['admin', 'bureau'].includes(user.role)) {
-          await supabase.auth.signOut();
+          await supabaseClient.auth.signOut();
           throw new Error('Accès refusé. Seuls les administrateurs et membres du bureau peuvent se connecter.');
         }
         
@@ -329,7 +328,7 @@
         localStorage.setItem('user_membre_id', user.membre_id || '');
         
         // Mettre à jour la dernière connexion
-        await supabase
+        await supabaseClient
           .from('utilisateurs')
           .update({ derniere_connexion: new Date().toISOString() })
           .eq('email', email);
@@ -354,7 +353,7 @@
       const email = prompt('Entrez votre email enregistré pour réinitialiser le mot de passe :');
       if (email) {
         try {
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin + '/login.html'
           });
           if (error) throw error;
@@ -363,14 +362,6 @@
           alert('❌ Erreur : ' + error.message);
         }
       }
-    }
-
-    // Contacter l'administrateur
-    function contactAdmin() {
-      alert('📞 Pour contacter l\'administrateur :\n\n' +
-            '📧 Email: admin@acaba2-0.cm\n' +
-            ' Téléphone: +237 6XX XXX XXX\n\n' +
-            'Ou contactez un membre du Bureau Exécutif.');
     }
   </script>
 </body>
