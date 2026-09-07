@@ -1,9 +1,10 @@
 // ============================================
-// ACABA 2#0 - Script Principal avec Supabase
+// ACABA 2#0 - Script Principal Complet
+// Avec Supabase + Authentification
 // ============================================
 
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_SO6dPdPS8DQzQ3tkx6FXsg_ctWy8X_U'; // ️ REMPLACEZ PAR VOTRE CLÉ
+const SUPABASE_KEY = 'VOTRE_CLE_PUBLISHABLE_ICI'; // ️ REMPLACEZ PAR VOTRE CLÉ
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variables globales
@@ -17,8 +18,107 @@ let appData = {
 };
 let contribChartInstance = null;
 let categoryChartInstance = null;
+window.currentUser = null;
 
-// Dictionnaire de traduction
+// ============================================
+// AUTHENTIFICATION ET PERMISSIONS
+// ============================================
+
+async function checkAuth() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  
+  if (!session) {
+    window.location.href = 'login.html';
+    return false;
+  }
+  
+  const { data: user, error } = await supabaseClient
+    .from('utilisateurs')
+    .select('role, fonction, membre_id')
+    .eq('email', session.user.email)
+    .single();
+  
+  if (error || !user || !['admin', 'bureau'].includes(user.role)) {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+    return false;
+  }
+  
+  window.currentUser = {
+    email: session.user.email,
+    role: user.role,
+    fonction: user.fonction,
+    membre_id: user.membre_id
+  };
+  
+  displayUserInfo();
+  applyPermissions();
+  
+  return true;
+}
+
+function displayUserInfo() {
+  const userInfo = document.getElementById('userInfo');
+  if (userInfo && window.currentUser) {
+    const roleText = window.currentUser.role === 'admin' ? 'Admin' : 'Bureau';
+    userInfo.textContent = `${window.currentUser.fonction} • ${roleText}`;
+  }
+}
+
+function hasPermission(action) {
+  if (!window.currentUser) return false;
+  
+  const permissions = {
+    'admin': ['create', 'read', 'update', 'delete', 'manage_users', 'export', 'import'],
+    'bureau': ['create', 'read', 'update', 'export'],
+    'membre': ['read']
+  };
+  
+  return permissions[window.currentUser.role]?.includes(action) || false;
+}
+
+function applyPermissions() {
+  if (!hasPermission('create')) {
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+      if (btn.textContent.includes('Nouveau') || btn.textContent.includes('Ajouter')) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+  
+  if (!hasPermission('delete')) {
+    document.querySelectorAll('.btn-danger').forEach(btn => {
+      if (btn.innerHTML && btn.innerHTML.includes('trash')) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+  
+  if (!hasPermission('export')) {
+    const exportBtn = document.querySelector('button[onclick="exportData()"]');
+    if (exportBtn) exportBtn.style.display = 'none';
+  }
+  
+  if (!hasPermission('import')) {
+    const importBtn = document.querySelector('button[onclick*="importFile"]');
+    if (importBtn) importBtn.style.display = 'none';
+  }
+}
+
+async function logout() {
+  if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_fonction');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_membre_id');
+    window.location.href = 'login.html';
+  }
+}
+
+// ============================================
+// DICTIONNAIRE DE TRADUCTION
+// ============================================
 const translations = {
   "dashboard": { fr: "Tableau de Bord", en: "Dashboard" },
   "members": { fr: "Membres", en: "Members" },
@@ -34,6 +134,7 @@ const translations = {
   "official-docs": { fr: "Statut & Règlement", en: "Rules & Regulations" },
   "share-app": { fr: "Partager", en: "Share" },
   "settings": { fr: "Paramètres", en: "Settings" },
+  "logout": { fr: "Déconnexion", en: "Logout" },
   "active_members": { fr: "Membres actifs", en: "Active Members" },
   "cfa_collected": { fr: "CFA collectés", en: "CFA Collected" },
   "matches_played": { fr: "Matchs joués", en: "Matches Played" },
@@ -59,9 +160,6 @@ const translations = {
   "team": { fr: "Équipe", en: "Team" },
   "annual_dues": { fr: "Cotisation Annuelle", en: "Annual Dues" },
   "status": { fr: "Statut", en: "Status" },
-  "status_member": { fr: "Statut du Membre", en: "Member Status" },
-  "active": { fr: "Actif", en: "Active" },
-  "inactive": { fr: "Inactif", en: "Inactive" },
   "actions": { fr: "Actions", en: "Actions" },
   "new": { fr: "Nouvelle", en: "New" },
   "dues_paid": { fr: "Cotisation Versée", en: "Dues Paid" },
@@ -288,7 +386,6 @@ function switchTab(tabId) {
     if (sidebar) sidebar.classList.remove('open');
   }
   
-  // Rafraîchir les données spécifiques à l'onglet
   setTimeout(() => {
     if (tabId === 'dashboard') renderDashboard();
     if (tabId === 'members') renderMembersTable();
@@ -392,6 +489,9 @@ function updateStorageUsage() {
 // CHARGEMENT DES DONNÉES DEPUIS SUPABASE
 // ============================================
 async function loadData() {
+  const isAuth = await checkAuth();
+  if (!isAuth) return;
+  
   showToast('Chargement...', false);
   
   try {
@@ -629,7 +729,6 @@ function renderMembersTable() {
       let duesBadgeClass = duesPaid >= 25000 ? "badge-success" : duesPaid >= 15000 ? "badge-warning" : "badge-danger";
       const duesHtml = `<span class="badge ${duesBadgeClass}">${duesPaid.toLocaleString()} F</span>`;
       
-      // ✅ MODIFICATION ICI : Afficher le statut de cotisation au lieu du statut du membre
       const statusHtml = duesPaid >= 25000 
         ? `<span class="badge badge-success">À jour</span>`
         : duesPaid >= 15000 
@@ -1228,7 +1327,6 @@ function renderTeams() {
   teamBCaptains.forEach(m => { captainsBHtml += `<div style="display:flex; align-items:center; gap:8px; background:var(--bg-main); padding:6px 10px; border-radius:6px; font-size:13px;"><span style="color:#ca8a04; font-weight:900;">(C)</span> ${getFullName(m)}</div>`; });
   if (el('teamBCaptains')) el('teamBCaptains').innerHTML = captainsBHtml;
 
-  // Meilleur joueur
   let manOfMatchCounts = {};
   appData.matches.forEach(m => { if (m.manOfMatch) { manOfMatchCounts[m.manOfMatch] = (manOfMatchCounts[m.manOfMatch] || 0) + 1; } });
   let bestPlayerId = null, maxVotes = 0;
@@ -1244,7 +1342,6 @@ function renderTeams() {
     if (el('bestPlayerVotes')) el('bestPlayerVotes').innerText = `0 désignations`;
   }
 
-  // Meilleur buteur
   let strikerCounts = {};
   appData.matches.forEach(m => {
     if (m.scorers) { m.scorers.split('\n').forEach(name => { const t = name.trim(); if (t) { strikerCounts[t] = (strikerCounts[t] || 0) + 1; } }); }
@@ -1254,7 +1351,6 @@ function renderTeams() {
   if (el('bestStrikerName')) el('bestStrikerName').innerText = bestStrikerName;
   if (el('bestStrikerGoals')) el('bestStrikerGoals').innerText = `${maxGoals} buts`;
 
-  // Classement buteurs
   const scorersRankingDiv = document.getElementById('scorersRanking');
   if (scorersRankingDiv) {
     let scorersArray = Object.keys(strikerCounts).map(name => ({ name, count: strikerCounts[name] })).sort((a, b) => b.count - a.count);
@@ -1263,13 +1359,12 @@ function renderTeams() {
     } else {
       scorersRankingDiv.innerHTML = '';
       scorersArray.forEach((s, index) => {
-        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+        const medal = index === 0 ? '' : index === 1 ? '' : index === 2 ? '🥉' : `${index + 1}.`;
         scorersRankingDiv.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px;"><span style="font-weight:600;"><span style="margin-right:8px;">${medal}</span> ${s.name}</span><span style="background:var(--gold-dark); color:white; padding:2px 8px; border-radius:10px; font-size:12px;">${s.count}</span></div>`;
       });
     }
   }
 
-  // Classement passeurs
   const assisterCounts = {};
   appData.matches.forEach(m => {
     if (m.assists) { m.assists.split('\n').forEach(name => { const t = name.trim(); if (t) { assisterCounts[t] = (assisterCounts[t] || 0) + 1; } }); }
@@ -1282,13 +1377,12 @@ function renderTeams() {
     } else {
       assistersRankingDiv.innerHTML = '';
       assistersArray.forEach((a, index) => {
-        const medal = index === 0 ? '🥇' : index === 1 ? '' : index === 2 ? '' : `${index + 1}.`;
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
         assistersRankingDiv.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px;"><span style="font-weight:600;"><span style="margin-right:8px;">${medal}</span> ${a.name}</span><span style="background:var(--accent-cyan); color:var(--primary); padding:2px 8px; border-radius:10px; font-size:12px;">${a.count}</span></div>`;
       });
     }
   }
 
-  // Championnat intergénération
   let winsJeunes = 0, winsVeterans = 0;
   appData.matches.filter(m => m.type === 'intergeneration').forEach(m => {
     const score1 = Number(m.score1 || 0), score2 = Number(m.score2 || 0);
@@ -1674,193 +1768,32 @@ function importData(input) {
       const importedData = JSON.parse(e.target.result);
       if (importedData.members && Array.isArray(importedData.members)) {
         if (confirm("Cela remplacera toutes les données actuelles. Continuer ?")) {
-          showToast("Importation en cours... Ne fermez pas la page.", false);
-          
-          // 1. Importer les membres et créer un mapping des IDs
-          const idMapping = {};
           if (importedData.members.length > 0) {
             const membersToInsert = importedData.members.map(m => ({
               nom: m.lastName || m.nom || '',
               prenom: m.firstName || m.prenom || '',
-              date_naissance: m.dob || m.dateNaissance || null,
-              lieu_naissance: m.pob || m.lieuNaissance || '',
-              sexe: m.gender || m.sexe || 'Masculin',
-              situation: m.civilStatus || m.situation || '',
+              date_naissance: m.dob || null,
+              lieu_naissance: m.pob || '',
+              sexe: m.gender || 'Masculin',
+              situation: m.civilStatus || '',
               profession: m.profession || '',
-              fonction_bureau: m.fonction || m.fonction_bureau || '',
-              categorie: m.category || m.categorie || 'Jeune',
-              statut_adhesion: m.statutAdhesion || m.statut_adhesion || 'aucun',
-              equipe: m.team || m.equipe || 'A',
-              capitaine: m.isCaptain || m.capitaine || false,
-              poste: m.position || m.poste || '',
+              fonction_bureau: m.fonction || '',
+              categorie: m.category || 'Jeune',
+              statut_adhesion: m.statutAdhesion || 'aucun',
+              equipe: m.team || 'A',
+              capitaine: m.isCaptain || false,
+              poste: m.position || '',
               numero: parseInt(m.number) || null,
-              tel: m.phone || m.tel || '',
+              tel: m.phone || '',
               email: m.email || '',
-              adresse: m.address || m.adresse || '',
+              adresse: m.address || '',
               photo_url: m.photo || '',
-              statut_membre: m.status || m.statut_membre || 'Actif'
+              statut_membre: m.status || 'Actif'
             }));
-            
-            const { data: insertedMembers, error: memberError } = await supabaseClient
-              .from('membres')
-              .insert(membersToInsert)
-              .select();
-            
-            if (memberError) {
-              console.error('Erreur membres:', memberError);
-              showToast('Erreur membres: ' + memberError.message, true);
-              return;
-            }
-            
-            // Créer le mapping : ancien ID -> nouvel ID Supabase
-            insertedMembers.forEach((newMember, index) => {
-              const oldMember = importedData.members[index];
-              idMapping[oldMember.id] = newMember.id;
-            });
-            
-            console.log('✅ Membres importés:', insertedMembers.length);
+            await supabaseClient.from('membres').insert(membersToInsert);
           }
-          
-          // 2. Importer les contributions avec les nouveaux memberIds
-          if (importedData.contributions && importedData.contributions.length > 0) {
-            const contribsToInsert = importedData.contributions.map(c => ({
-              membre_id: idMapping[c.memberId] || c.memberId,
-              montant: parseFloat(c.amount) || 0,
-              date_paiement: c.date || c.date_paiement,
-              type_paiement: c.type || c.type_paiement
-            }));
-            
-            const { error: contribError } = await supabaseClient
-              .from('contributions')
-              .insert(contribsToInsert);
-            
-            if (contribError) {
-              console.error('Erreur contributions:', contribError);
-              showToast('Erreur contributions: ' + contribError.message, true);
-            } else {
-              console.log('✅ Contributions importées:', contribsToInsert.length);
-            }
-          }
-          
-          // 3. Importer les dépenses
-          if (importedData.expenses && importedData.expenses.length > 0) {
-            const expensesToInsert = importedData.expenses.map(e => ({
-              montant: parseFloat(e.amount) || 0,
-              date_depense: e.date || e.date_depense,
-              motif: e.reason || e.motif,
-              beneficiaire: e.beneficiary || e.beneficiaire
-            }));
-            
-            const { error: expenseError } = await supabaseClient
-              .from('depenses')
-              .insert(expensesToInsert);
-            
-            if (expenseError) console.error('Erreur dépenses:', expenseError);
-            else console.log('✅ Dépenses importées:', expensesToInsert.length);
-          }
-          
-          // 4. Importer les sanctions
-          if (importedData.sanctions && importedData.sanctions.length > 0) {
-            const sanctionsToInsert = importedData.sanctions.map(s => ({
-              joueur_id: idMapping[s.memberId] || s.memberId,
-              type_sanction: s.type || s.type_sanction,
-              montant: parseFloat(s.amount) || 0,
-              montant_paye: parseFloat(s.amountPaid) || 0,
-              date_sanction: s.date || s.date_sanction,
-              motif: s.reason || s.motif
-            }));
-            
-            const { error: sanctionError } = await supabaseClient
-              .from('sanctions')
-              .insert(sanctionsToInsert);
-            
-            if (sanctionError) console.error('Erreur sanctions:', sanctionError);
-            else console.log('✅ Sanctions importées:', sanctionsToInsert.length);
-          }
-          
-          // 5. Importer les arbitres
-          if (importedData.referees && importedData.referees.length > 0) {
-            const refereesToInsert = importedData.referees.map(r => ({
-              nom: r.name || r.nom,
-              tel: r.phone || r.tel,
-              email: r.email,
-              photo_url: r.photo || r.photo_url
-            }));
-            
-            const { error: refError } = await supabaseClient
-              .from('arbitres')
-              .insert(refereesToInsert);
-            
-            if (refError) console.error('Erreur arbitres:', refError);
-            else console.log('✅ Arbitres importés:', refereesToInsert.length);
-          }
-          
-          // 6. Importer les matchs
-          if (importedData.matches && importedData.matches.length > 0) {
-            const matchesToInsert = importedData.matches.map(m => ({
-              type_match: m.type || m.type_match,
-              date_match: m.date || m.date_match,
-              trimestre: parseInt(m.trimester) || null,
-              adversaire: m.opponent || m.adversaire,
-              score1: parseInt(m.score1) || 0,
-              score2: parseInt(m.score2) || 0,
-              homme_match_id: idMapping[m.manOfMatch] || m.manOfMatch || null,
-              arbitre_central: m.refereeCentral || m.arbitre_central,
-              commissaire: m.commissioner || m.commissaire,
-              juge1: m.judge1 || m.juge1,
-              juge2: m.judge2 || m.judge2,
-              buteurs: m.scorers || m.buteurs,
-              passeurs: m.assists || m.passeurs,
-              feuille_match1: m.sheet1 || m.feuille_match1,
-              feuille_match2: m.sheet2 || m.feuille_match2
-            }));
-            
-            const { error: matchError } = await supabaseClient
-              .from('matchs')
-              .insert(matchesToInsert);
-            
-            if (matchError) console.error('Erreur matchs:', matchError);
-            else console.log('✅ Matchs importés:', matchesToInsert.length);
-          }
-          
-          // 7. Importer les blessures
-          if (importedData.injuries && importedData.injuries.length > 0) {
-            const injuriesToInsert = importedData.injuries.map(i => ({
-              joueur_id: idMapping[i.memberId] || i.memberId,
-              type_blessure: i.type || i.type_blessure,
-              duree_jours: parseInt(i.duration) || null,
-              date_blessure: i.date || i.date_blessure,
-              statut: i.status || i.statut
-            }));
-            
-            const { error: injuryError } = await supabaseClient
-              .from('blessures')
-              .insert(injuriesToInsert);
-            
-            if (injuryError) console.error('Erreur blessures:', injuryError);
-            else console.log('✅ Blessures importées:', injuriesToInsert.length);
-          }
-          
-          // 8. Importer les paramètres
-          if (importedData.officialDocs) {
-            if (importedData.officialDocs.statut) {
-              await supabaseClient.from('parametres').upsert({ cle: 'statut', valeur: importedData.officialDocs.statut });
-            }
-            if (importedData.officialDocs.reglement) {
-              await supabaseClient.from('parametres').upsert({ cle: 'reglement', valeur: importedData.officialDocs.reglement });
-            }
-          }
-          if (importedData.settings) {
-            if (importedData.settings.name) {
-              await supabaseClient.from('parametres').upsert({ cle: 'nom_association', valeur: importedData.settings.name });
-            }
-            if (importedData.settings.logo) {
-              await supabaseClient.from('parametres').upsert({ cle: 'logo_url', valeur: importedData.settings.logo });
-            }
-          }
-          
-          showToast("✅ Importation terminée ! Rechargement...", false);
-          setTimeout(() => location.reload(), 1500);
+          await loadData();
+          showToast("Données importées avec succès !", false);
         }
       } else {
         showToast("Fichier JSON invalide.", true);
