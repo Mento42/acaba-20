@@ -1,6 +1,6 @@
 // ============================================
-// ACABA 2#0 - Script Principal Complet
-// Système Multi-utilisateurs : Admin + Bureau + Membres
+// ACABA 2#0 - Script Principal
+// Système : 4 Admins + 1 Compte Membre Partagé
 // ============================================
 
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
@@ -21,7 +21,7 @@ let categoryChartInstance = null;
 window.currentUser = null;
 
 // ============================================
-// AUTHENTIFICATION ET PERMISSIONS
+// AUTHENTIFICATION
 // ============================================
 
 async function checkAuth() {
@@ -36,19 +36,17 @@ async function checkAuth() {
     const userEmail = session.user.email;
     let userRole = 'membre';
     let userFonction = 'Membre';
-    let userMembreId = null;
     
     try {
       const { data: user } = await supabaseClient
         .from('utilisateurs')
-        .select('role, fonction, membre_id')
+        .select('role, fonction')
         .eq('email', userEmail)
         .single();
       
       if (user) {
         userRole = user.role;
         userFonction = user.fonction;
-        userMembreId = user.membre_id;
       }
     } catch (err) {
       console.log('Utilisateur non trouvé, rôle membre par défaut');
@@ -57,11 +55,10 @@ async function checkAuth() {
     window.currentUser = {
       email: userEmail,
       role: userRole,
-      fonction: userFonction,
-      membre_id: userMembreId
+      fonction: userFonction
     };
     
-    console.log('✅ Utilisateur connecté:', userFonction, '(', userRole, ')');
+    console.log('✅ Connecté:', userFonction, '(', userRole, ')');
     
     displayUserInfo();
     applyPermissions();
@@ -138,7 +135,7 @@ function applyMemberView() {
   
   const role = window.currentUser.role;
   
-  // Pour les membres simples, limiter la vue
+  // Pour les membres, limiter la vue
   if (role === 'membre') {
     // Onglets cachés pour les membres
     const hiddenTabs = ['contributions', 'expenses', 'sanctions', 'infirmerie', 
@@ -1422,7 +1419,7 @@ function renderTeams() {
     } else {
       scorersRankingDiv.innerHTML = '';
       scorersArray.forEach((s, index) => {
-        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '' : `${index + 1}.`;
         scorersRankingDiv.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px;"><span style="font-weight:600;"><span style="margin-right:8px;">${medal}</span> ${s.name}</span><span style="background:var(--gold-dark); color:white; padding:2px 8px; border-radius:10px; font-size:12px;">${s.count}</span></div>`;
       });
     }
@@ -1620,16 +1617,7 @@ async function deleteMatch(id) {
 // ============================================
 function renderLicencePreview() {
   const select = document.getElementById('licencePlayer');
-  let memberId = select?.value;
-  
-  // Si l'utilisateur est un membre simple, forcer l'affichage de sa propre licence
-  if (window.currentUser && window.currentUser.role === 'membre') {
-    if (window.currentUser.membre_id) {
-      memberId = window.currentUser.membre_id;
-      if (select) select.style.display = 'none';
-    }
-  }
-  
+  const memberId = select?.value;
   const previewDiv = document.getElementById('licencePreview');
   if (!memberId || !previewDiv) { if (previewDiv) previewDiv.classList.add('hidden'); return; }
   const m = appData.members.find(x => x.id == memberId);
@@ -1675,16 +1663,7 @@ function generateLicencePDF() {
 // ============================================
 function renderMemberStatement() {
   const select = document.getElementById('statementMemberSelect');
-  let memberId = select?.value;
-  
-  // Si l'utilisateur est un membre simple, forcer l'affichage de son propre relevé
-  if (window.currentUser && window.currentUser.role === 'membre') {
-    if (window.currentUser.membre_id) {
-      memberId = window.currentUser.membre_id;
-      if (select) select.style.display = 'none';
-    }
-  }
-  
+  const memberId = select?.value;
   const memberInfoDiv = document.getElementById('statementMemberInfo');
   if (!memberId) {
     if (memberInfoDiv) memberInfoDiv.classList.add('hidden');
