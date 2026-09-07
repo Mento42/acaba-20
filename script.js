@@ -1,10 +1,10 @@
 // ============================================
 // ACABA 2#0 - Script Principal Complet
-// Avec Supabase + Authentification
+// Système Multi-utilisateurs : Admin + Bureau + Membres
 // ============================================
 
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_SO6dPdPS8DQzQ3tkx6FXsg_ctWy8X_U'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
+const SUPABASE_KEY = 'VOTRE_CLE_PUBLIQUE_ICI'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variables globales
@@ -34,8 +34,8 @@ async function checkAuth() {
     }
     
     const userEmail = session.user.email;
-    let userRole = 'admin';
-    let userFonction = 'Administrateur';
+    let userRole = 'membre';
+    let userFonction = 'Membre';
     let userMembreId = null;
     
     try {
@@ -51,7 +51,7 @@ async function checkAuth() {
         userMembreId = user.membre_id;
       }
     } catch (err) {
-      console.log('Utilisateur non trouvé, rôle admin par défaut');
+      console.log('Utilisateur non trouvé, rôle membre par défaut');
     }
     
     window.currentUser = {
@@ -61,22 +61,18 @@ async function checkAuth() {
       membre_id: userMembreId
     };
     
+    console.log('✅ Utilisateur connecté:', userFonction, '(', userRole, ')');
+    
     displayUserInfo();
     applyPermissions();
+    applyMemberView();
     
     return true;
     
   } catch (error) {
     console.error('Erreur checkAuth:', error);
-    window.currentUser = {
-      email: 'admin@local',
-      role: 'admin',
-      fonction: 'Administrateur',
-      membre_id: null
-    };
-    displayUserInfo();
-    applyPermissions();
-    return true;
+    window.location.href = 'login.html';
+    return false;
   }
 }
 
@@ -84,7 +80,10 @@ function displayUserInfo() {
   const userInfo = document.getElementById('userInfo');
   const userInfoText = document.getElementById('userInfoText');
   if (userInfo && userInfoText && window.currentUser) {
-    const roleText = window.currentUser.role === 'admin' ? 'Admin' : 'Bureau';
+    let roleText = 'Membre';
+    if (window.currentUser.role === 'admin') roleText = 'Admin';
+    else if (window.currentUser.role === 'bureau') roleText = 'Bureau';
+    
     userInfoText.textContent = `${window.currentUser.fonction} • ${roleText}`;
     userInfo.style.display = 'block';
   }
@@ -92,28 +91,81 @@ function displayUserInfo() {
 
 function hasPermission(action) {
   if (!window.currentUser) return false;
+  
   const permissions = {
     'admin': ['create', 'read', 'update', 'delete', 'manage_users', 'export', 'import'],
     'bureau': ['create', 'read', 'update', 'export'],
     'membre': ['read']
   };
+  
   return permissions[window.currentUser.role]?.includes(action) || false;
 }
 
 function applyPermissions() {
-  if (!hasPermission('create')) {
-    document.querySelectorAll('.btn-primary').forEach(btn => {
-      if (btn.textContent.includes('Nouveau') || btn.textContent.includes('Ajouter')) {
-        btn.style.display = 'none';
-      }
+  if (!window.currentUser) return;
+  
+  const role = window.currentUser.role;
+  
+  // ADMIN : accès total
+  if (role === 'admin') return;
+  
+  // BUREAU : pas de suppression, pas d'import
+  if (role === 'bureau') {
+    if (!hasPermission('delete')) {
+      document.querySelectorAll('.btn-danger').forEach(btn => {
+        if (btn.innerHTML && btn.innerHTML.includes('trash')) {
+          btn.style.display = 'none';
+        }
+      });
+    }
+    if (!hasPermission('import')) {
+      const importBtn = document.querySelector('button[onclick*="importFile"]');
+      if (importBtn) importBtn.style.display = 'none';
+    }
+    return;
+  }
+  
+  // MEMBRE : très restrictif
+  if (role === 'membre') {
+    document.querySelectorAll('.btn-primary, .btn-danger, .btn-gold').forEach(btn => {
+      btn.style.display = 'none';
     });
   }
-  if (!hasPermission('delete')) {
-    document.querySelectorAll('.btn-danger').forEach(btn => {
-      if (btn.innerHTML && btn.innerHTML.includes('trash')) {
+}
+
+function applyMemberView() {
+  if (!window.currentUser) return;
+  
+  const role = window.currentUser.role;
+  
+  // Pour les membres simples, limiter la vue
+  if (role === 'membre') {
+    // Onglets cachés pour les membres
+    const hiddenTabs = ['contributions', 'expenses', 'sanctions', 'infirmerie', 
+                        'official-docs', 'settings', 'share-app', 'annual-report', 'members'];
+    
+    hiddenTabs.forEach(tabId => {
+      const link = document.querySelector(`.sidebar-link[data-tab="${tabId}"]`);
+      if (link) link.style.display = 'none';
+    });
+    
+    // Cacher les boutons d'action
+    document.querySelectorAll('.btn-primary, .btn-secondary, .btn-danger, .btn-gold').forEach(btn => {
+      const text = btn.textContent.toLowerCase();
+      if (text.includes('nouveau') || text.includes('ajouter') || 
+          text.includes('modifier') || text.includes('enregistrer') ||
+          text.includes('supprimer') || text.includes('exporter') ||
+          text.includes('importer') || text.includes('réinitialiser') ||
+          text.includes('purger')) {
         btn.style.display = 'none';
       }
     });
+    
+    // Rediriger vers le tableau de bord si sur un onglet interdit
+    const currentTab = document.querySelector('.tab-content:not(.hidden)');
+    if (currentTab && hiddenTabs.includes(currentTab.id)) {
+      switchTab('dashboard');
+    }
   }
 }
 
@@ -140,7 +192,7 @@ const translations = {
   "licences": { fr: "Licences", en: "Licenses" },
   "infirmerie": { fr: "Infirmerie", en: "Infirmary" },
   "teams": { fr: "Équipes & Matchs", en: "Teams & Matches" },
-  "member-statement": { fr: "Relevé Membre", en: "Member Statement" },
+  "member-statement": { fr: "Mon Relevé", en: "My Statement" },
   "annual-report": { fr: "Bilan Annuel", en: "Annual Report" },
   "official-docs": { fr: "Statut & Règlement", en: "Rules & Regulations" },
   "share-app": { fr: "Partager", en: "Share" },
@@ -1568,7 +1620,16 @@ async function deleteMatch(id) {
 // ============================================
 function renderLicencePreview() {
   const select = document.getElementById('licencePlayer');
-  const memberId = select?.value;
+  let memberId = select?.value;
+  
+  // Si l'utilisateur est un membre simple, forcer l'affichage de sa propre licence
+  if (window.currentUser && window.currentUser.role === 'membre') {
+    if (window.currentUser.membre_id) {
+      memberId = window.currentUser.membre_id;
+      if (select) select.style.display = 'none';
+    }
+  }
+  
   const previewDiv = document.getElementById('licencePreview');
   if (!memberId || !previewDiv) { if (previewDiv) previewDiv.classList.add('hidden'); return; }
   const m = appData.members.find(x => x.id == memberId);
@@ -1614,7 +1675,16 @@ function generateLicencePDF() {
 // ============================================
 function renderMemberStatement() {
   const select = document.getElementById('statementMemberSelect');
-  const memberId = select?.value;
+  let memberId = select?.value;
+  
+  // Si l'utilisateur est un membre simple, forcer l'affichage de son propre relevé
+  if (window.currentUser && window.currentUser.role === 'membre') {
+    if (window.currentUser.membre_id) {
+      memberId = window.currentUser.membre_id;
+      if (select) select.style.display = 'none';
+    }
+  }
+  
   const memberInfoDiv = document.getElementById('statementMemberInfo');
   if (!memberId) {
     if (memberInfoDiv) memberInfoDiv.classList.add('hidden');
