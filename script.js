@@ -4,7 +4,7 @@
 // ============================================
 
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-const SUPABASE_KEY = 'VOTRE_CLE_PUBLISHABLE_ICI'; // ️ REMPLACEZ PAR VOTRE CLÉ
+const SUPABASE_KEY = 'sb_publishable_SO6dPdPS8DQzQ3tkx6FXsg_ctWy8X_U'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variables globales
@@ -33,16 +33,13 @@ async function checkAuth() {
       return false;
     }
     
-    // Récupérer l'email de l'utilisateur connecté
     const userEmail = session.user.email;
-    
-    // Essayer de lire la table utilisateurs (sans bloquer si échec)
-    let userRole = 'admin'; // Rôle par défaut
+    let userRole = 'admin';
     let userFonction = 'Administrateur';
     let userMembreId = null;
     
     try {
-      const { data: user, error } = await supabaseClient
+      const { data: user } = await supabaseClient
         .from('utilisateurs')
         .select('role, fonction, membre_id')
         .eq('email', userEmail)
@@ -54,10 +51,9 @@ async function checkAuth() {
         userMembreId = user.membre_id;
       }
     } catch (err) {
-      console.log('Utilisateur non trouvé dans la table, utilisation du rôle admin par défaut');
+      console.log('Utilisateur non trouvé, rôle admin par défaut');
     }
     
-    // Créer l'utilisateur courant
     window.currentUser = {
       email: userEmail,
       role: userRole,
@@ -65,7 +61,6 @@ async function checkAuth() {
       membre_id: userMembreId
     };
     
-    // Afficher les infos et appliquer les permissions
     displayUserInfo();
     applyPermissions();
     
@@ -73,7 +68,6 @@ async function checkAuth() {
     
   } catch (error) {
     console.error('Erreur checkAuth:', error);
-    // En cas d'erreur critique, permettre quand même l'accès
     window.currentUser = {
       email: 'admin@local',
       role: 'admin',
@@ -83,6 +77,53 @@ async function checkAuth() {
     displayUserInfo();
     applyPermissions();
     return true;
+  }
+}
+
+function displayUserInfo() {
+  const userInfo = document.getElementById('userInfo');
+  const userInfoText = document.getElementById('userInfoText');
+  if (userInfo && userInfoText && window.currentUser) {
+    const roleText = window.currentUser.role === 'admin' ? 'Admin' : 'Bureau';
+    userInfoText.textContent = `${window.currentUser.fonction} • ${roleText}`;
+    userInfo.style.display = 'block';
+  }
+}
+
+function hasPermission(action) {
+  if (!window.currentUser) return false;
+  const permissions = {
+    'admin': ['create', 'read', 'update', 'delete', 'manage_users', 'export', 'import'],
+    'bureau': ['create', 'read', 'update', 'export'],
+    'membre': ['read']
+  };
+  return permissions[window.currentUser.role]?.includes(action) || false;
+}
+
+function applyPermissions() {
+  if (!hasPermission('create')) {
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+      if (btn.textContent.includes('Nouveau') || btn.textContent.includes('Ajouter')) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+  if (!hasPermission('delete')) {
+    document.querySelectorAll('.btn-danger').forEach(btn => {
+      if (btn.innerHTML && btn.innerHTML.includes('trash')) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+}
+
+async function logout() {
+  if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_fonction');
+    localStorage.removeItem('user_email');
+    window.location.href = 'login.html';
   }
 }
 
@@ -1329,7 +1370,7 @@ function renderTeams() {
     } else {
       scorersRankingDiv.innerHTML = '';
       scorersArray.forEach((s, index) => {
-        const medal = index === 0 ? '' : index === 1 ? '' : index === 2 ? '🥉' : `${index + 1}.`;
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
         scorersRankingDiv.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-main); padding:8px 12px; border-radius:6px;"><span style="font-weight:600;"><span style="margin-right:8px;">${medal}</span> ${s.name}</span><span style="background:var(--gold-dark); color:white; padding:2px 8px; border-radius:10px; font-size:12px;">${s.count}</span></div>`;
       });
     }
