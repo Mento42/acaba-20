@@ -4,7 +4,7 @@
 // ============================================
 
 const SUPABASE_URL = 'https://gajleiddneqwzbrzahgh.supabase.co';
-const SUPABASE_KEY = 'VOTRE_CLE_PUBLIQUE_ICI'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
+const SUPABASE_KEY = 'sb_publishable_SO6dPdPS8DQzQ3tkx6FXsg_ctWy8X_U'; // ⚠️ REMPLACEZ PAR VOTRE CLÉ
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variables globales
