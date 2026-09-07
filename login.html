@@ -273,7 +273,7 @@
           .eq('email', session.user.email)
           .single();
         
-        if (user && ['admin', 'bureau'].includes(user.role)) {
+        if (user && ['admin', 'bureau', 'membre'].includes(user.role)) {
           window.location.href = 'index.html';
         } else {
           await supabaseClient.auth.signOut();
@@ -316,9 +316,10 @@
           throw new Error('Utilisateur non trouvé dans la base de données.');
         }
         
-        if (!['admin', 'bureau'].includes(user.role)) {
+        // ✅ MODIFICATION ICI : Autoriser admin, bureau ET membre
+        if (!['admin', 'bureau', 'membre'].includes(user.role)) {
           await supabaseClient.auth.signOut();
-          throw new Error('Accès refusé. Seuls les administrateurs et membres du bureau peuvent se connecter.');
+          throw new Error('Accès refusé. Rôle non autorisé.');
         }
         
         // Stocker les informations de session
